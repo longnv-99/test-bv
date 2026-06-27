@@ -342,10 +342,10 @@
 
     .field label {
       display: block;
-      font-size: 13px;
-      color: var(--slate);
+      font-size: 16px;
+      color: var(--navy-4);
       margin-bottom: 6px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .field input,
@@ -383,6 +383,38 @@
       flex-wrap: wrap;
     }
 
+    .inline-row .input-with-icon input {
+      padding-left: 40px;
+    }
+
+    .field .input-with-icon input {
+      padding-left: 40px;
+    }
+
+    .field .input-with-icon {
+      position: relative;
+      flex: 1;
+    }
+
+    .rider-input-row .input-with-icon {
+      position: relative;
+      flex: 1;
+    }
+
+    .rider-input-row .input-with-icon input {
+      padding-left: 40px;
+    }
+
+    .input-with-icon .input-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+    }
+
     .inline-row label {
       margin-bottom: 0;
       flex: 0 0 auto;
@@ -398,6 +430,37 @@
       flex: 1;
       width: auto;
       min-width: 120px;
+    }
+
+    .field .inline-row .select-with-icon {
+      position: relative;
+      flex: 1;
+    }
+
+    .rider-input-row .select-with-icon {
+      position: relative;
+      flex: 1;
+    }
+
+    .field .inline-row .select-with-icon select {
+      padding-left: 40px;
+    }
+
+    .rider-input-row .select-with-icon select {
+      padding-left: 40px;
+    }
+
+    .select-with-icon .select-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+
+      width: 18px;
+      height: 18px;
+
+      pointer-events: none;
+      z-index: 1;
     }
 
     .inline-row .seg {
@@ -452,11 +515,25 @@
       cursor: pointer;
       font-size: 14px;
       color: var(--ink);
+      align-items: center;
+      justify-content: center;
+      display: flex;
     }
 
     .seg-btn.active {
       background: var(--navy);
       color: #fff;
+    }
+
+    .seg-btn .gender-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+
+    .seg-btn.active .gender-icon {
+      filter: brightness(0) invert(1);
     }
 
     /* RIDERS */
@@ -485,9 +562,15 @@
       font-size: 14px;
     }
 
+    .rider-check-label {
+      color: var(--navy-4);
+      font-weight: 700;
+    }
+
     .rider-check input {
       width: 18px;
       height: 18px;
+      border: 1px solid var(--navy-4);
       accent-color: var(--gold);
     }
 
@@ -585,6 +668,12 @@
       line-height: 1.6;
     }
 
+    .input-error {
+      border-color: var(--terracotta) !important;
+      outline: 1px solid #f5c4b4 !important;
+      background: #fff8f6 !important;
+    }
+
     /* PAGE 2 */
     .summary-head {
       display: flex;
@@ -606,7 +695,7 @@
       border: 1px solid var(--line);
       background: #fff;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 15px;
       cursor: pointer;
       color: var(--slate);
       white-space: nowrap;
@@ -630,7 +719,7 @@
       border: 1px solid var(--line);
       background: #fff;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 15px;
       cursor: pointer;
       color: var(--slate);
       font-weight: 600;
@@ -764,7 +853,7 @@
     .illus-table {
       border-collapse: collapse;
       width: 100%;
-      font-size: 11.5px;
+      font-size: 13px;
       white-space: normal;
       table-layout: fixed;
     }
@@ -772,17 +861,18 @@
     .illus-table th,
     .illus-table td {
       padding: 7px 6px;
-      text-align: right;
+      text-align: center;
       border-bottom: 1px solid var(--line);
       font-variant-numeric: tabular-nums;
       word-break: break-word;
       line-height: 1.3;
+      font-size: 14px;
     }
 
     .illus-table thead th {
       background: var(--navy);
       color: #fff;
-      text-align: right;
+      text-align: center;
       font-weight: 600;
       position: sticky;
       top: 0;
@@ -849,7 +939,7 @@
     }
 
     .benefit-section-title {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--navy);
       background: var(--parchment);
@@ -861,7 +951,7 @@
     .benefit-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13.5px;
+      font-size: 14.5px;
     }
 
     .benefit-table td {
@@ -925,7 +1015,7 @@
       }
 
       .inline-row label {
-        font-size: 12px;
+        font-size: 16px;
       }
 
       .dual-inline-row {
@@ -978,6 +1068,7 @@
     width: 100%;
     margin-bottom: 0;
     white-space: normal;
+    color: var(--navy-4);
   }
 
   .inline-row input,
@@ -1030,7 +1121,7 @@
 
   .actions .btn { width: 100%; }
 
-  .benefit-table { font-size: 12px; }
+  .benefit-table { font-size: 14px; }
 
   .benefit-table td { padding: 8px; }
 }
@@ -1387,7 +1478,7 @@
     // ============ RENDER: STEP INDICATOR ============
     function renderSteps() {
       const el = document.getElementById('steps');
-      const labels = ['1. Thông tin khách hàng', '2. Bảng minh họa tổng', '3. Tóm tắt quyền lợi'];
+      const labels = ['1. Thông tin khách hàng', '2. Bảng minh họa', '3. Tóm tắt quyền lợi'];
       el.innerHTML = labels.map((l, i) => {
         const n = i + 1;
         const cls = n === state.page ? 'step active' : (n < state.page ? 'step done' : 'step');
@@ -1417,13 +1508,19 @@
       <div class="field">
         <div class="inline-row">
           <label>Họ và tên</label>
-          <input type="text" id="f-name" value="${state.customer.name}" placeholder="Nguyễn Văn A">
+          <div class="input-with-icon">
+            <img src="user.svg" alt="" class="input-icon">
+            <input type="text" id="f-name" value="${state.customer.name}" placeholder="Nguyễn Văn A">
+          </div>
         </div>
       </div>
       <div class="field">
         <div class="inline-row">
           <label>Ngày sinh</label>
-          <input type="text" inputmode="numeric" id="f-dob" value="${state.customer.dobStr || ''}" placeholder="dd/mm/yyyy" maxlength="10">
+          <div class="input-with-icon">
+            <img src="calendar.svg" alt="" class="input-icon">
+            <input type="text" inputmode="numeric" id="f-dob" value="${state.customer.dobStr || ''}" placeholder="dd/mm/yyyy" maxlength="10">
+          </div>
         </div>
         <div class="hint" id="age-hint">${state.customer.age !== null ? `Tuổi được bảo hiểm: <b>${state.customer.age}</b> (ngày tham gia: ${new Date().toLocaleDateString('vi-VN')})` : 'Nhập đầy đủ ngày/tháng/năm sinh theo định dạng dd/mm/yyyy để tính tuổi.'}</div>
       </div>
@@ -1431,17 +1528,26 @@
           <div class="inline-row">
             <label>Giới tính</label>
             <div class="seg">
-              <button type="button" class="seg-btn ${state.customer.gender === 'Nam' ? 'active' : ''}" data-g="Nam">Nam</button>
-              <button type="button" class="seg-btn ${state.customer.gender === 'Nu' ? 'active' : ''}" data-g="Nu">Nữ</button>
+              <button type="button" class="seg-btn ${state.customer.gender === 'Nam' ? 'active' : ''}" data-g="Nam">
+                <img src="male.svg" class="gender-icon" alt="">
+                <span>Nam</span>
+              </button>
+              <button type="button" class="seg-btn ${state.customer.gender === 'Nu' ? 'active' : ''}" data-g="Nu">
+                <img src="female.svg" class="gender-icon" alt="">
+                <span>Nữ</span>
+              </button>
             </div>
           </div>
       </div>
       <div class="field">
           <div class="inline-row">
             <label>Nhóm nghề</label>
-            <select id="f-nhom">
-              ${[1, 2, 3, 4, 5, 6].map(n => `<option value="${n}" ${state.customer.nhomNgheNghiep === n ? 'selected' : ''}>${n}</option>`).join('')}
-            </select>
+            <div class="select-with-icon">
+              <img src="briefcase.svg" class="select-icon" alt="">
+              <select id="f-nhom">
+                ${[1, 2, 3, 4, 5, 6].map(n => `<option value="${n}" ${state.customer.nhomNgheNghiep === n ? 'selected' : ''}>${n}</option>`).join('')}
+              </select>
+            </div>
           </div>
       </div>
     </div>
@@ -1452,34 +1558,49 @@
     <div class="grid2">
       <div class="field">
         <label>Phí bảo hiểm cơ bản / năm</label>
-        <input type="text" inputmode="numeric" id="f-phicoban" value="${state.product.phiCoBan}" placeholder="VD: 30.000.000">
+        <div class="input-with-icon">
+          <img src="dollar.svg" alt="" class="input-icon">
+          <input type="text" inputmode="numeric" id="f-phicoban" value="${state.product.phiCoBan}" placeholder="VD: 30.000.000">
+        </div>
         <div class="hint" id="hint-daily-saving">${dailySaving !== null ? `Tiết kiệm: <b>${fmtMoney(dailySaving)} đồng/ngày</b>` : ''}</div>
       </div>
       <div class="field">
         <label>Phí bảo hiểm đóng thêm / năm</label>
-        <input type="text" inputmode="numeric" id="f-phidongthem" value="${state.product.phiDongThem}" placeholder="VD: 0">
+        <div class="input-with-icon">
+          <img src="dollar.svg" alt="" class="input-icon">
+          <input type="text" inputmode="numeric" id="f-phidongthem" value="${state.product.phiDongThem}" placeholder="VD: 0">
+        </div>
         <div class="hint" id="hint-phidongthem">${limPDT ? `Tối đa: <b>${fmtMoney(limPDT.max)} đ</b>/năm (5 lần phí cơ bản).` : ''}</div>
       </div>
       <div class="field" style="grid-column:1/-1">
         <label>Số tiền bảo hiểm (Sản phẩm chính)</label>
-        <input type="text" inputmode="numeric" id="f-stbh" value="${state.product.stbhChinh}" placeholder="VD: 1.000.000.000">
+        <div class="input-with-icon">
+          <img src="dollar.svg" alt="" class="input-icon">
+          <input type="text" inputmode="numeric" id="f-stbh" value="${state.product.stbhChinh}" placeholder="VD: 1.000.000.000">
+        </div>
         <div class="hint" id="hint-stbh-chinh">${stbhHintHtml(limStbh)}</div>
       </div>
       <div class="field">
         <div class="inline-row">
           <label>Thời hạn hợp đồng</label>
-          <select id="f-term">
-            <option value="20" ${state.product.termMode === '20' ? 'selected' : ''}>20 năm</option>
-            <option value="25" ${state.product.termMode === '25' ? 'selected' : ''}>25 năm</option>
-            <option value="30" ${state.product.termMode === '30' ? 'selected' : ''}>30 năm</option>
-            <option value="den90" ${state.product.termMode === 'den90' ? 'selected' : ''}>Tới tuổi 90</option>
-          </select>
+          <div class="select-with-icon">
+            <img src="clock.svg" class="select-icon" alt="">
+            <select id="f-term">
+              <option value="20" ${state.product.termMode === '20' ? 'selected' : ''}>20 năm</option>
+              <option value="25" ${state.product.termMode === '25' ? 'selected' : ''}>25 năm</option>
+              <option value="30" ${state.product.termMode === '30' ? 'selected' : ''}>30 năm</option>
+              <option value="den90" ${state.product.termMode === 'den90' ? 'selected' : ''}>Tới tuổi 90</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="field">
         <div class="inline-row">
           <label>Thời hạn đóng phí dự kiến (năm)</label>
-          <input type="number" id="f-payyears" min="4" max="${term || 30}" value="${state.product.paymentYears}">
+          <div class="input-with-icon">
+            <img src="clock.svg" alt="" class="input-icon">
+            <input type="number" id="f-payyears" min="4" max="${term || 30}" value="${state.product.paymentYears}">
+          </div>
         </div>
         <div class="hint">Tối thiểu 4 năm theo quy định bắt buộc của sản phẩm.</div>
       </div>
@@ -1494,7 +1615,7 @@
   </div>
 
   <div class="actions">
-    <button class="btn btn-primary" id="btn-go-page2">Xem bảng minh họa tổng →</button>
+    <button class="btn btn-primary" id="btn-go-page2">Xem bảng minh họa →</button>
   </div>
   `;
       bindPage1Events();
@@ -1520,37 +1641,43 @@
       if (r.unit === 'TIER') {
         const tierRange = r26TierRange(phiCoBan);
         return `
-    <div class="rider-row">
-      <label class="rider-check">
-        <input type="checkbox" data-rider="${r.type}" class="rider-toggle" ${st.enabled ? 'checked' : ''}>
-        <span><b>${r.type}</b> — ${r.label}</span>
-      </label>
-      <div class="rider-input-col">
-        <div class="rider-input-row">
-          <select class="rider-input" data-rider-tier="${r.type}" ${st.enabled ? '' : 'disabled'}>
-            ${R26_TIERS.map(t => `<option value="${t.key}" ${st.tier === t.key ? 'selected' : ''}>${t.label} (${t.limit})</option>`).join('')}
-          </select>
-          ${st.enabled ? `<span class="rider-fee" id="fee-rider-R26">${riderFeeHtml(r, st)}</span>` : ''}
-        </div>
-        ${st.enabled ? `<div class="hint" id="hint-rider-R26">${tierRange ? `Hạng mức cho phép theo phí cơ bản: <b>${tierRange.minTier}</b> – <b>${tierRange.maxTier}</b>.` : 'Nhập Phí bảo hiểm cơ bản để xem hạng mức cho phép.'}</div>` : ''}
-      </div>
-    </div>`;
+          <div class="rider-row">
+            <label class="rider-check">
+              <input type="checkbox" data-rider="${r.type}" class="rider-toggle" ${st.enabled ? 'checked' : ''}>
+              <span class="rider-check-label">${r.type} — ${r.label}</span>
+            </label>
+            <div class="rider-input-col">
+              <div class="rider-input-row">
+                <div class="select-with-icon">
+                  <img src="dollar.svg" class="select-icon" alt="">
+                  <select class="rider-input" data-rider-tier="${r.type}" ${st.enabled ? '' : 'disabled'}>
+                    ${R26_TIERS.map(t => `<option value="${t.key}" ${st.tier === t.key ? 'selected' : ''}>${t.label} (${t.limit})</option>`).join('')}
+                  </select>
+                </div>
+                ${st.enabled ? `<span class="rider-fee" id="fee-rider-R26">${riderFeeHtml(r, st)}</span>` : ''}
+              </div>
+              ${st.enabled ? `<div class="hint" id="hint-rider-R26">${tierRange ? `Hạng mức cho phép theo phí cơ bản: <b>${tierRange.minTier}</b> – <b>${tierRange.maxTier}</b>.` : 'Nhập Phí bảo hiểm cơ bản để xem hạng mức cho phép.'}</div>` : ''}
+            </div>
+          </div>`;
       }
       const lim = riderStbhLimits(r.type, age, phiCoBan, stbhChinh);
       return `
-  <div class="rider-row">
-    <label class="rider-check">
-      <input type="checkbox" data-rider="${r.type}" class="rider-toggle" ${st.enabled ? 'checked' : ''}>
-      <span><b>${r.type}</b> — ${r.label}</span>
-    </label>
-    <div class="rider-input-col">
-      <div class="rider-input-row">
-        <input type="text" inputmode="numeric" class="rider-input" data-rider-stbh="${r.type}" placeholder="${r.placeholder}" value="${st.stbh}" ${st.enabled ? '' : 'disabled'}>
-        ${st.enabled ? `<span class="rider-fee" id="fee-rider-${r.type}">${riderFeeHtml(r, st)}</span>` : ''}
-      </div>
-      ${st.enabled ? `<div class="hint" id="hint-rider-${r.type}">${riderHintHtml(r.type, lim)}</div>` : ''}
-    </div>
-  </div>`;
+        <div class="rider-row">
+          <label class="rider-check">
+            <input type="checkbox" data-rider="${r.type}" class="rider-toggle" ${st.enabled ? 'checked' : ''}>
+            <span class="rider-check-label">${r.type} — ${r.label}</span>
+          </label>
+          <div class="rider-input-col">
+            <div class="rider-input-row">
+              <div class="input-with-icon">
+                <img src="dollar.svg" alt="" class="input-icon">
+                <input type="text" inputmode="numeric" class="rider-input" data-rider-stbh="${r.type}" placeholder="${r.placeholder}" value="${st.stbh}" ${st.enabled ? '' : 'disabled'}>
+              </div>
+              ${st.enabled ? `<span class="rider-fee" id="fee-rider-${r.type}">${riderFeeHtml(r, st)}</span>` : ''}
+            </div>
+            ${st.enabled ? `<div class="hint" id="hint-rider-${r.type}">${riderHintHtml(r.type, lim)}</div>` : ''}
+          </div>
+        </div>`;
     }
     function riderHintHtml(type, lim) {
       if (!lim) return type === 'R29'
@@ -1632,6 +1759,12 @@
         state.page = 2;
         renderAll();
       });
+
+      // Xóa border đỏ khi focus vào input
+      ['f-dob', 'f-stbh', 'f-phicoban', 'f-payyears'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', () => el.classList.remove('input-error'));
+      });
     }
 
     function refreshHints() {
@@ -1677,12 +1810,34 @@
     function validatePage1() {
       const errs = [];
       const term = resolvedTerm();
-      if (state.customer.age === null) errs.push('Vui lòng chọn đầy đủ ngày sinh.');
-      if (!parseNum(state.product.stbhChinh)) errs.push('Vui lòng nhập Số tiền bảo hiểm.');
-      if (!parseNum(state.product.phiCoBan)) errs.push('Vui lòng nhập Phí bảo hiểm cơ bản.');
-      if (state.product.paymentYears < 4) errs.push('Thời hạn đóng phí dự kiến tối thiểu 4 năm.');
-      if (term !== null && state.product.paymentYears > term) errs.push('Thời hạn đóng phí không được dài hơn Thời hạn hợp đồng.');
-      if (state.customer.age !== null && (state.customer.age < 0 || state.customer.age > 85)) errs.push('Tuổi được bảo hiểm ngoài phạm vi hỗ trợ (0–85 tuổi).');
+      const fieldErrors = { dob: false, stbh: false, phicoban: false, payyears: false };
+
+      if (state.customer.age === null) { errs.push('Vui lòng chọn đầy đủ ngày sinh.'); fieldErrors.dob = true; }
+
+      if (!parseNum(state.product.stbhChinh)) { errs.push('Vui lòng nhập Số tiền bảo hiểm.'); fieldErrors.stbh = true; }
+      else if (parseNum(state.product.stbhChinh) < 100000000) { errs.push('Số tiền bảo hiểm tối thiểu 100 triệu đồng.'); fieldErrors.stbh = true; }
+      else if (parseNum(state.product.stbhChinh) > 1400000000) { errs.push('Số tiền bảo hiểm không vượt quá 1 tỉ 400 triệu đồng.'); fieldErrors.stbh = true; }
+
+      if (!parseNum(state.product.phiCoBan)) { errs.push('Vui lòng nhập Phí bảo hiểm cơ bản.'); fieldErrors.phicoban = true; }
+      else if (parseNum(state.product.phiCoBan) < 100000000) { errs.push('Phí bảo hiểm cơ bản tối thiểu 100 triệu đồng.'); fieldErrors.phicoban = true; }
+      else if (parseNum(state.product.phiCoBan) > 1400000000) { errs.push('Phí bảo hiểm cơ bản không vượt quá 1 tỉ 400 triệu đồng.'); fieldErrors.phicoban = true; }
+
+      if (state.product.paymentYears < 4) { errs.push('Thời hạn đóng phí dự kiến tối thiểu 4 năm.'); fieldErrors.payyears = true; }
+
+      if (term !== null && state.product.paymentYears > term) { errs.push('Thời hạn đóng phí không được dài hơn Thời hạn hợp đồng.'); fieldErrors.payyears = true; }
+
+      if (state.customer.age !== null && (state.customer.age < 0 || state.customer.age > 85)) { errs.push('Tuổi được bảo hiểm ngoài phạm vi hỗ trợ (0–85 tuổi).'); fieldErrors.dob = true; }
+
+      // Highlight / clear border đỏ cho từng input
+      const toggle = (id, hasError) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('input-error', hasError);
+      };
+      toggle('f-dob', fieldErrors.dob);
+      toggle('f-stbh', fieldErrors.stbh);
+      toggle('f-phicoban', fieldErrors.phicoban);
+      toggle('f-payyears', fieldErrors.payyears);
+
       const banner = document.getElementById('form-errors');
       if (errs.length) {
         banner.innerHTML = errs.map(e => '• ' + e).join('<br>');
@@ -1739,7 +1894,7 @@
   <div class="card">
     <div class="summary-head">
       <div>
-        <h2 class="card-title" style="margin-bottom:2px">Bảng minh họa tổng</h2>
+        <h2 class="card-title" style="margin-bottom:2px">Bảng minh họa</h2>
         <div class="hint">${state.customer.name || 'Khách hàng'} · ${state.customer.gender === 'Nam' ? 'Nam' : 'Nữ'} · ${state.customer.age} tuổi · STBH ${fmtMoney(state.lastInputs.stbhChinh)} đ</div>
       </div>
       <div class="rate-toggle">
