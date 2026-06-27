@@ -1,0 +1,1990 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Công cụ minh họa An Thịnh Phúc Niên — Nội bộ</title>
+  <style>
+    :root {
+      --navy: #102A43;
+      --navy-2: #1C3A5E;
+      --navy-3: #196BB4;
+      --navy-4: #003b7a;
+      --gold: #B8862B;
+      --gold-2: #D7A94D;
+      --gold-3: #dda307;
+      --gold-4: #f6b508;
+      --parchment: #FAF6EE;
+      --paper: #FFFFFF;
+      --ink: #1B2733;
+      --slate: #5C6B7A;
+      --line: #E4DCC8;
+      --teal: #2F6F62;
+      --terracotta: #B5562D;
+      --radius: 10px;
+      --shadow: 0 1px 2px rgba(16, 42, 67, .06), 0 4px 16px rgba(16, 42, 67, .06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    /* select {
+      -webkit-appearance: none;
+      appearance: none;
+    } */
+
+    body {
+      margin: 0;
+      background: var(--parchment);
+      color: var(--ink);
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    h1,
+    h2,
+    h3 {
+      /* font-family: "Georgia", "Times New Roman", serif; */
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.15;
+      font-size: 1.08rem;
+    }
+
+    /* GATE */
+    #gate {
+      position: fixed;
+      inset: 0;
+      background: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .gate-box {
+      background: var(--paper);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+      width: 320px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .gate-box h1 {
+      font-size: 22px;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .gate-box p {
+      color: var(--slate);
+      font-size: 13px;
+      margin: 0 0 20px;
+    }
+
+    .gate-box input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: center;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .gate-box button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: var(--gold);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .gate-box button:hover {
+      background: var(--gold-2);
+    }
+
+    .gate-error {
+      display: none;
+      color: var(--terracotta);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    /* HEADER */
+    .app-header {
+      background: var(--navy-3);
+      color: #fff;
+      padding: 14px 16px 12px;
+    }
+
+    .app-banner {
+      max-width: 1040px;
+      margin: auto;
+      padding: 0;
+    }
+
+    @media screen and (min-width: 640px) {
+      .app-banner {
+        padding: 0 20px;
+      }
+    }
+
+    .app-banner img {
+      height: 100%;
+      width: 100%;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      color: transparent;
+      object-position: center;
+      object-fit: cover;
+      max-width: 100%;
+      display: block;
+    }
+
+    .app-header .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      max-width: 1040px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+    }
+
+    .app-header .brand h1 {
+      font-size: 19px;
+      color: #fff;
+    }
+
+    .app-header .brand .tag {
+      font-size: 12px;
+      color: var(--gold-4);
+      letter-spacing: .04em;
+      font-weight: 800;
+    }
+
+    /* STEPS */
+    #steps {
+      display: flex;
+      align-items: center;
+      max-width: 1040px;
+      margin: 20px auto 0;
+      padding: 0 20px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      justify-content: center;
+    }
+
+    #steps::-webkit-scrollbar {
+      display: none;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      opacity: .25;
+      flex-shrink: 0;
+
+      justify-content: center;
+    }
+
+    .step.active,
+    .step.done {
+      opacity: 1;
+    }
+
+    .step-num {
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .15);
+      /* color: #fff; */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--navy-4);
+      border: solid 1px var(--navy-4);
+      /* border-color: var(--navy-4); */
+    }
+
+    .step.active > .step-num {
+      border: none;
+      color: #fff;
+    }
+
+    .step.active .step-num {
+      background: var(--gold-3);
+    }
+
+    .step.done .step-num {
+      background: var(--teal);
+      border: none;
+      background-color: var(--navy-4);
+      color: #fff;
+    }
+
+    .step-label {
+      font-size: 15px;
+      /* color: #fff; */
+      white-space: nowrap;
+      font-weight: 700;
+
+      color: var(--navy-4);
+    }
+
+    .step-divider {
+      flex: 0 0 28px;
+      height: 1px;
+      /* background: rgba(255, 255, 255, .2); */
+      margin: 0 10px;
+      background-color: var(--navy-4);
+      opacity: .15;
+    }
+
+    @media (max-width:540px) {
+      .app-header {
+        padding: 12px 14px 10px;
+      }
+
+      .app-header .brand h1 {
+        font-size: 16px;
+      }
+
+      .app-header .brand .tag {
+        font-size: 10px;
+      }
+
+      #steps {
+        padding: 0 14px;
+        justify-content: center;
+        
+      }
+
+      .step-divider {
+        flex: 0 0 16px;
+        margin: 0 6px;
+      }
+
+      .step:not(.active) .step-label {
+        display: none;
+      }
+
+      .step.active .step-label {
+        font-size: 14px;
+        font-weight: 600;
+      }
+    }
+
+    /* LAYOUT */
+    #page-root {
+      max-width: 1040px;
+      margin: 20px auto 80px;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-size: 18px;
+      color: var(--navy-4);
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--gold);
+      padding-bottom: 10px;
+    }
+
+    .sub-title {
+      font-size: 15px;
+      color: var(--navy);
+      margin: 18px 0 10px;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 20px;
+    }
+
+    @media (max-width:640px) {
+      .grid2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--slate);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 16px;
+      background: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: 2px solid var(--gold-2);
+      border-color: var(--gold);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--slate);
+      margin-top: 5px;
+    }
+
+    .hint-pending {
+      color: #A65D2E;
+      font-weight: 600;
+    }
+
+    .inline-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .inline-row label {
+      margin-bottom: 0;
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .inline-row input {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .inline-row select {
+      flex: 1;
+      width: auto;
+      min-width: 120px;
+    }
+
+    .inline-row .seg {
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .dual-inline-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .dual-inline-row .inline-row {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .dual-inline-row .inline-row select {
+      width: auto;
+      min-width: 60px;
+      padding: 10px 10px;
+      flex: 0 1 auto;
+    }
+
+    .dob-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dob-row select {
+      flex: 1;
+      padding: 10px 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 16px;
+      background: #fff;
+    }
+
+    .seg {
+      display: flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .seg-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .seg-btn.active {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    /* RIDERS */
+    .riders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .rider-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      flex-wrap: wrap;
+    }
+
+    .rider-check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 220px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .rider-check input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--gold);
+    }
+
+    .rider-input {
+      width: 220px;
+      max-width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .rider-input:disabled {
+      background: #F4F1E8;
+      color: #aaa;
+    }
+
+    .rider-input-col {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .rider-input-col .hint {
+      margin-top: 0;
+    }
+
+    .rider-input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .rider-fee {
+      font-size: 12.5px;
+      color: var(--teal);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* ACTIONS */
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 22px;
+      border-radius: 30px;
+      border: 1px solid transparent;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      line-height: 1;
+    }
+
+    .btn-primary {
+      background: var(--gold-3);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--gold-4);
+      border-color: var(--gold-3);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--navy);
+    }
+
+    .btn-secondary:hover {
+      background: #F4F1E8;
+    }
+
+    .btn-danger-armed {
+      background: var(--terracotta) !important;
+      color: #fff !important;
+      border-color: var(--terracotta) !important;
+    }
+
+    .error-banner {
+      background: #FDECE7;
+      border: 1px solid var(--terracotta);
+      color: #8a3a1f;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    /* PAGE 2 */
+    .summary-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .rate-toggle {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+
+    .rate-btn {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--slate);
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .rate-btn.active {
+      background: var(--navy);
+      color: #fff;
+      border-color: var(--navy);
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .view-btn {
+      padding: 7px 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--slate);
+      font-weight: 600;
+    }
+
+    .view-btn.active {
+      background: var(--gold);
+      color: #fff;
+      border-color: var(--gold);
+    }
+
+    .illus-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .illus-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+      background: #FBF9F2;
+    }
+
+    .illus-card.milestone-row {
+      background: #F3DFAE;
+      border-color: #D9B65C;
+    }
+
+    .illus-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(16, 42, 67, .12);
+    }
+
+    .illus-card-year {
+      font-weight: 700;
+      color: var(--navy);
+      font-size: 15px;
+    }
+
+    .illus-card-age {
+      font-size: 12.5px;
+      color: var(--slate);
+    }
+
+    .illus-card-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 4px 0;
+      font-size: 13px;
+    }
+
+    .illus-card-label {
+      color: var(--slate);
+    }
+
+    .illus-card-val {
+      font-weight: 600;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .illus-card-val.strong {
+      color: var(--navy);
+      font-weight: 700;
+    }
+
+    .illus-card-val.pos {
+      color: var(--teal);
+    }
+
+    .illus-card-val.neg {
+      color: var(--terracotta);
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width:640px) {
+      .kpi-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .kpi {
+      background: var(--parchment);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      color: var(--slate);
+      margin-bottom: 4px;
+    }
+
+    .kpi-val {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi-val.pos {
+      color: var(--teal);
+    }
+
+    .kpi-val.neg {
+      color: var(--terracotta);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      max-height: 70vh;
+    }
+
+    .illus-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 11.5px;
+      white-space: normal;
+      table-layout: fixed;
+    }
+
+    .illus-table th,
+    .illus-table td {
+      padding: 7px 6px;
+      text-align: right;
+      border-bottom: 1px solid var(--line);
+      font-variant-numeric: tabular-nums;
+      word-break: break-word;
+      line-height: 1.3;
+    }
+
+    .illus-table thead th {
+      background: var(--navy);
+      color: #fff;
+      text-align: right;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      white-space: normal;
+    }
+
+    .illus-table td.sticky {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 600;
+      text-align: center;
+      width: 78px;
+    }
+
+    .illus-table thead th.sticky {
+      position: sticky;
+      top: 0;
+      left: 0;
+      z-index: 3;
+      background: var(--navy);
+      color: #fff;
+      text-align: center;
+    }
+
+    .illus-table tbody tr:nth-child(odd) {
+      background: #FBF9F2;
+    }
+
+    .illus-table tbody tr:nth-child(odd) td.sticky {
+      background: #FBF9F2;
+    }
+
+    .illus-table tbody tr.milestone-row {
+      background: #F3DFAE;
+    }
+
+    .illus-table tbody tr.milestone-row td.sticky {
+      background: #E8C77E;
+      color: var(--navy);
+    }
+
+    .illus-table tbody tr.milestone-row td {
+      font-weight: 600;
+    }
+
+    .pos {
+      color: var(--teal);
+      font-weight: 600;
+    }
+
+    .neg {
+      color: var(--terracotta);
+      font-weight: 600;
+    }
+
+    /* PAGE 3 */
+    /* PAGE 3 — BANG QUYEN LOI */
+    .benefit-section {
+      margin-bottom: 22px;
+    }
+
+    .benefit-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      background: var(--parchment);
+      border-left: 4px solid var(--gold);
+      padding: 8px 12px;
+      margin-bottom: 0;
+    }
+
+    .benefit-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    .benefit-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    .benefit-table td:first-child {
+      width: 62%;
+      color: var(--ink);
+    }
+
+    .benefit-table td:last-child {
+      text-align: right;
+      font-weight: 700;
+      color: var(--navy);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .benefit-table tr:nth-child(odd) {
+      background: #FBF9F2;
+    }
+
+    .benefit-table .note {
+      font-size: 11.5px;
+      color: var(--slate);
+      font-weight: 400;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .disclaimer-box {
+      margin-top: 18px;
+      padding: 14px 16px;
+      background: #FBF3E7;
+      border: 1px solid var(--gold-2);
+      border-radius: 8px;
+      font-size: 12.5px;
+      color: #6b5526;
+      line-height: 1.5;
+    }
+
+    footer.app-footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 11.5px;
+      color: var(--slate);
+    }
+
+    /* ===== MOBILE OVERRIDES (đặt cuối file để thắng đúng cascade) ===== */
+    @media (max-width:480px) {
+      .seg-btn {
+        padding: 7px 6px;
+        font-size: 12px;
+      }
+
+      .inline-row .seg {
+        min-width: 70px;
+      }
+
+      .inline-row label {
+        font-size: 12px;
+      }
+
+      .dual-inline-row {
+        gap: 6px;
+      }
+
+      .dual-inline-row .inline-row {
+        min-width: 0;
+        flex: 0 0 auto;
+        gap: 6px;
+      }
+
+      .dual-inline-row .inline-row select {
+        min-width: 42px;
+        padding: 8px 6px;
+      }
+
+      .rider-input {
+        width: 100px;
+        padding: 9px 8px;
+      }
+
+      .rider-fee {
+        font-size: 11px;
+      }
+
+      .rider-input-row {
+        gap: 6px;
+      }
+    }
+  
+/* ===== MOBILE OPTIMIZATION ===== */
+@media (max-width: 768px) {
+
+  #page-root { padding: 0 12px; }
+
+  .card { padding: 16px; }
+
+  .inline-row,
+  .dual-inline-row,
+  .dual-inline-row .inline-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .inline-row label,
+  .dual-inline-row label {
+    width: 100%;
+    margin-bottom: 0;
+    white-space: normal;
+  }
+
+  .inline-row input,
+  .inline-row select,
+  .dual-inline-row input,
+  .dual-inline-row select,
+  .inline-row .seg {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+
+  .dob-row { flex-direction: column; }
+
+  .rider-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .rider-check {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .rider-input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rider-input { width: 100%; }
+
+  .summary-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rate-toggle { width: 100%; }
+
+  .rate-btn { flex: 1; }
+
+  .view-toggle { flex-wrap: wrap; }
+
+  .view-btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .actions { flex-direction: column; }
+
+  .actions .btn { width: 100%; }
+
+  .benefit-table { font-size: 12px; }
+
+  .benefit-table td { padding: 8px; }
+}
+
+
+@media (max-width: 768px){
+  .grid2,
+  .grid-2,
+  .row-2{
+    grid-template-columns: 1fr !important;
+  }
+}
+
+</style>
+</head>
+
+<body>
+  <div id="gate">
+    <div class="gate-box">
+      <h1>An Thịnh Phúc Niên</h1>
+      <p>Công cụ minh họa nội bộ — vui lòng nhập mã truy cập</p>
+      <input type="password" id="gate-pass" placeholder="Mã truy cập" autocomplete="off">
+      <button type="button" id="gate-submit">Vào công cụ</button>
+      <div class="gate-error" id="gate-error">Mã truy cập không đúng, vui lòng thử lại.</div>
+    </div>
+  </div>
+  <div id="app" style="display:none">
+
+    <!-- <header class="app-header">
+      <div class="brand">
+        <h1>An Thịnh Phúc Niên</h1>
+        <span class="tag">CÔNG CỤ MINH HỌA NỘI BỘ</span>
+      </div>
+      <div id="steps"></div>
+    </header> -->
+    <div class="app-banner">
+      <img src="banner3.jpg" />
+    </div>
+    <div id="steps"></div>
+    <main id="page-root">
+    </main>
+  </div>
+  <script>
+
+    const PHISPC = { nam: [1.84, 0.72, 0.69, 0.6725, 0.6496, 0.6104, 0.5799, 0.5402, 0.5203, 0.5095, 0.5203, 0.5601, 0.6399, 0.7404, 0.8598, 0.9904, 1.1103, 1.2005, 1.2699, 1.3097, 1.3297, 1.3302, 1.3104, 1.2802, 1.2599, 1.2201, 1.2002, 1.19, 1.1901, 1.2001, 1.2201, 1.2601, 1.2999, 1.3603, 1.4299, 1.5102, 1.6198, 1.7402, 1.8702, 2.0301, 2.2002, 2.39, 2.5894, 2.819, 3.0499, 3.309, 3.5786, 3.8682, 4.1685, 4.5158, 4.8963, 5.3329, 5.8224, 6.3791, 6.9872, 7.6525, 8.3432, 9.0698, 9.8188, 10.8005, 11.7613, 12.851, 14.0808, 15.4608, 16.9815, 18.632, 20.393, 22.2541, 24.2558, 26.4743, 28.9721, 31.9352, 35.0473, 38.7263, 42.7672, 47.0667, 51.5835, 56.2406, 61.113, 66.33, 82.35, 89.67, 97.93, 107.07, 116.9, 127.18, 137.77, 148.58, 159.62, 170.95], nu: [1.31, 0.6132, 0.56, 0.54, 0.5314, 0.5154, 0.5174, 0.4917, 0.4911, 0.4712, 0.4805, 0.49, 0.5095, 0.5176, 0.583, 0.6001, 0.6397, 0.6542, 0.7165, 0.7199, 0.7402, 0.7505, 0.7695, 0.7803, 0.7996, 0.8095, 0.8402, 0.8596, 0.8899, 0.9197, 0.9506, 0.9901, 1.0195, 1.0696, 1.1201, 1.1901, 1.2694, 1.3697, 1.4894, 1.6197, 1.7704, 1.9198, 2.0798, 2.2396, 2.4001, 2.5703, 2.7407, 2.9302, 3.1298, 3.3499, 3.5902, 3.85, 4.1395, 4.4608, 4.7903, 5.1307, 5.4598, 5.7699, 6.0906, 6.4408, 6.8599, 7.37, 8.0407, 8.8399, 9.7407, 10.7, 11.6911, 12.6914, 13.711, 14.8601, 16.2105, 17.8709, 19.9206, 22.3917, 25.2307, 28.3922, 31.812, 35.4728, 39.4232, 43.7944, 55.74, 62.26, 69.8, 78.32, 87.7, 97.83, 108.66, 120.14, 132.3, 145.23] };
+    const PHISPBK = { "r29_nam": [370300, 370300, 370300, 370300, 370300, 205700, 205700, 205700, 205700, 205700, 143300, 143300, 143300, 143300, 143300, 130000, 130000, 130000, 130000, 130000, 121800, 121800, 121800, 121800, 121800, 143700, 143700, 143700, 143700, 143700, 162100, 162100, 162100, 162100, 162100, 177200, 177200, 177200, 177200, 177200, 195300, 195300, 195300, 195300, 195300, 248200, 248200, 248200, 248200, 248200, 317500, 317500, 317500, 317500, 317500, 430200, 430200, 430200, 430200, 430200, 539200, 539200, 539200, 539200, 539200, 793500, 793500, 793500, 793500, 793500, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r29_nu": [325400, 325400, 325400, 325400, 325400, 183500, 183500, 183500, 183500, 183500, 121500, 121500, 121500, 121500, 121500, 114900, 114900, 114900, 114900, 114900, 125600, 125600, 125600, 125600, 125600, 147400, 147400, 147400, 147400, 147400, 172300, 172300, 172300, 172300, 172300, 185300, 185300, 185300, 185300, 185300, 215800, 215800, 215800, 215800, 215800, 296100, 296100, 296100, 296100, 296100, 365000, 365000, 365000, 365000, 365000, 444600, 444600, 444600, 444600, 444600, 539200, 539200, 539200, 539200, 539200, 716900, 716900, 716900, 716900, 716900, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r29_base": 100000, "r21_nam": [53000, 48000, 43200, 39000, 35500, 32000, 29700, 28200, 28500, 29000, 29200, 30200, 32200, 36000, 37700, 40000, 44500, 48200, 51200, 54200, 57000, 60200, 65200, 72500, 80000, 89000, 98500, 108500, 119200, 130200, 142700, 156200, 174500, 199200, 227200, 258700, 290900, 308300, 321600, 368700, 422200, 477000, 529300, 587600, 654500, 731500, 818000, 912800, 1010700, 1104300, 1190300, 1310600, 1409900, 1481700, 1559600, 1641700, 1725700, 1848800, 2020100, 2211300, 2421600, 2648700, 2862300, 3050000, 3242600, 3442600, 3647700, 3908700, 4203200, 4451900, 4843300, 5295600, 5666300, 6062900, 6487300, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r21_nu": [53200, 48000, 43200, 38700, 34700, 31700, 28500, 27700, 28000, 28500, 28700, 29200, 30200, 31000, 32200, 33700, 35700, 38200, 41700, 46500, 52200, 58500, 60500, 66500, 73500, 81000, 89500, 99200, 111500, 125000, 140700, 158500, 176200, 193700, 212500, 233700, 256700, 285000, 316100, 347000, 390700, 436700, 474300, 510500, 549000, 589300, 630600, 673100, 717100, 763300, 810400, 857000, 901700, 944200, 992200, 1040300, 1087000, 1133500, 1174700, 1232900, 1286800, 1338700, 1389800, 1441200, 1494800, 1545600, 1584400, 1624200, 1665000, 1706800, 1848800, 2039000, 2257000, 2415000, 2584000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r21_base": 100000000, "r25_nam": [229100, 181100, 159900, 147800, 147500, 136900, 120900, 113300, 114400, 115400, 119400, 129400, 129400, 133400, 144200, 150100, 157500, 163700, 119000, 119500, 122700, 126200, 131200, 133100, 135600, 143900, 153200, 160000, 160900, 168900, 170100, 181600, 198800, 221500, 246800, 275000, 305600, 323600, 351300, 396200, 447800, 505400, 563800, 621300, 684800, 755100, 832700, 928300, 1047000, 1143400, 1271200, 1390500, 1489100, 1561200, 1640700, 1726500, 1814100, 1943000, 2121100, 2319300, 2623100, 2866600, 3101000, 3313700, 3535300, 4321700, 4662500, 5037600, 5489700, 5974100, 6537300, 7191000, 7937800, 8776100, 9676000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r25_nu": [155700, 132000, 117100, 115200, 103800, 83800, 72700, 67300, 66400, 67700, 71800, 75600, 75900, 78100, 83400, 86600, 89900, 93300, 76500, 79200, 83700, 89000, 95200, 102700, 111500, 121200, 131400, 143500, 146700, 163000, 182300, 201600, 221900, 242700, 266400, 279500, 305600, 336700, 373900, 402800, 426600, 474300, 520200, 562700, 611900, 665800, 679500, 728600, 774200, 829600, 874700, 935300, 992000, 1042400, 1103500, 1169500, 1230500, 1289100, 1345800, 1417600, 1495900, 1728100, 1807200, 1885100, 1984900, 2124600, 2637400, 2769100, 2919000, 3115300, 3433000, 3867500, 4362800, 4928200, 5607300, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r25_base": 100000000, "r23_phi": [10800, 21600, 32400, 43200, 54000, 54000, 54000, 54000, 54000, 54000, 54000, 54000, 54000, 54000, 54000, 54000, 54000, 54000, 88200, 88200, 88200, 88200, 88200, 88200, 88200, 88200, 88200, 88200, 88200, 88200, 68700, 68700, 68700, 68700, 68700, 68700, 68700, 68700, 68700, 68700, 83800, 83800, 83800, 83800, 83800, 83800, 83800, 83800, 83800, 83800, 112400, 112400, 112400, 112400, 112400, 112400, 112400, 112400, 112400, 112400, 109800, 109800, 109800, 109800, 109800, 109800, 109800, 109800, 109800, 109800, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r23_base": 100000000, "r26_bac": [4808, 3345, 3345, 3717, 3717, 1352, 1521, 1521, 1521, 1352, 1095, 1095, 1095, 985, 985, 1323, 1191, 1191, 1191, 1191, 1483, 1483, 1483, 1483, 1483, 1628, 1628, 1628, 1628, 1628, 1683, 1683, 1683, 1683, 1683, 1764, 1764, 1764, 1764, 1764, 1816, 1816, 1816, 1816, 1816, 2106, 2106, 2106, 2106, 2106, 2420, 2420, 2420, 2420, 2420, 2718, 2718, 2718, 2718, 2718, 3626, 3626, 3626, 3626, 3626, 3853, 3853, 3853, 3853, 3853, 3853, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r26_vang": [12591, 8444, 8444, 9382, 10555, 3278, 3278, 3278, 3278, 2950, 2283, 2283, 2283, 2283, 2283, 2565, 2565, 2565, 2565, 2565, 2635, 2635, 2635, 2635, 2635, 2660, 2660, 2660, 2660, 2660, 3053, 3053, 3053, 3053, 3053, 3198, 3198, 3198, 3198, 3198, 3477, 3477, 3477, 3477, 3477, 4457, 4457, 4457, 4457, 4457, 5364, 5364, 5364, 5364, 5364, 6298, 6298, 6298, 6298, 6298, 8401, 8401, 8401, 8401, 8401, 8928, 8928, 8928, 8928, 8928, 8928, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r26_bachkim": [20546, 14208, 14208, 15786, 17760, 5354, 5354, 5354, 5354, 4818, 3703, 3703, 3703, 3703, 3703, 4364, 4364, 4364, 4364, 4364, 5253, 5253, 5253, 5253, 5253, 5689, 5689, 5689, 5689, 5689, 5873, 5873, 5873, 5873, 5873, 6143, 6143, 6143, 6143, 6143, 6400, 6400, 6400, 6400, 6400, 7610, 7610, 7610, 7610, 7610, 8845, 8845, 8845, 8845, 8845, 10048, 10048, 10048, 10048, 10048, 13418, 13418, 13418, 13418, 13418, 14281, 14281, 14281, 14281, 14281, 14281, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r26_kimcuong": [24282, 17243, 17243, 19159, 21554, 7837, 6966, 6269, 6269, 6269, 5031, 5031, 5031, 5031, 5031, 6112, 6112, 6112, 6112, 6112, 7596, 7596, 7596, 7596, 7596, 8325, 8325, 8325, 8325, 8325, 8578, 8578, 8578, 8578, 8578, 8968, 8968, 8968, 8968, 8968, 9208, 9208, 9208, 9208, 9208, 10680, 10680, 10680, 10680, 10680, 12258, 12258, 12258, 12258, 12258, 13738, 13738, 13738, 13738, 13738, 18374, 18374, 18374, 18374, 18374, 19584, 19584, 19584, 19584, 19584, 19584, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r26_lucbao": [39439, 28065, 28065, 31183, 35081, 12756, 11339, 10205, 10205, 10205, 8182, 8182, 8182, 8182, 8182, 9946, 9946, 9946, 9946, 9946, 12357, 12357, 12357, 12357, 12357, 13538, 13538, 13538, 13538, 13538, 13947, 13947, 13947, 13947, 13947, 14576, 14576, 14576, 14576, 14576, 14960, 14960, 14960, 14960, 14960, 17355, 17355, 17355, 17355, 17355, 19916, 19916, 19916, 19916, 19916, 22318, 22318, 22318, 22318, 22318, 29853, 29853, 29853, 29853, 29853, 31830, 31830, 31830, 31830, 31830, 31830, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "r22_phi_co_ban": 51000, "r22_base": 100000000, "nhom_factor": { "1": 1.0, "2": 1.3, "3": 1.9, "4": 2.5 } };
+
+
+    // ============ ENGINE LOGIC ============
+    function sarRatio(age) { const t = [0.2, 0.4, 0.6, 0.8]; return age < 4 ? t[age] : 1.0; }
+    function feeRateCoBan(n) {
+      if (n === 1) return 0.5;
+      if (n === 2) return 0.3;
+      if (n >= 3 && n <= 5) return 0.2;
+      if (n >= 6 && n <= 10) return 0.02;
+      return 0;
+    }
+    function feeRateDongThem(n) { return n <= 10 ? 0.015 : 0; }
+    function mgmtFeeMonthly(calYear) { return Math.min(30000 + (calYear - 2026) * 1000, 70000); }
+    function terminationFeeRate(n) { const t = { 1: 1.0, 2: 0.8, 3: 0.45, 4: 0.4, 5: 0.2 }; return t[n] ?? 0; }
+    function minGuaranteedRate(n) {
+      if (n === 1) return 0.025;
+      if (n === 2) return 0.02;
+      if (n === 3) return 0.015;
+      if (n >= 4 && n <= 10) return 0.01;
+      return 0.005;
+    }
+    function duyTriRate(n) { if (n === 5) return 0.02; if (n === 10) return 0.04; if (n === 15) return 0.06; return 0.08; }
+    function addMonths(d, n) { const r = new Date(d); r.setMonth(r.getMonth() + n); return r; }
+    function annualRateForYear(mode, n) {
+      if (mode === '476') return 0.0476;
+      if (mode === '425') return 0.0425;
+      return minGuaranteedRate(n);
+    }
+    function rateAt(table, age) { const i = Math.min(Math.max(age, 0), table.length - 1); return table[i] || 0; }
+
+    // Tuổi tối đa của thời hạn bảo vệ từng sản phẩm bổ trợ (theo PhiSPBK: phí giảm về 0 tại tuổi này;
+    // R22 không có bảng phí theo tuổi nên áp dụng cùng mốc với R23 theo xác nhận của Trí).
+    const RIDER_MAX_AGE = { R21: 74, R22: 69, R23: 69, R25: 74, R26: 70, R29: 69 };
+
+    // Hệ số điều chỉnh phí theo Nhóm nghề nghiệp (1-6), áp dụng riêng cho R22 và R23
+    // theo '1.NĐBH'!F10,F11 (VLOOKUP PhiSPBK!P5:Q11 / P5:R11). Hệ số 0 = không nhận bảo hiểm nhóm đó.
+    const NHOM_FACTOR_R22 = { 1: 1, 2: 1.3, 3: 1.9, 4: 2.5, 5: 0, 6: 0 };
+    const NHOM_FACTOR_R23 = { 1: 1, 2: 1.3, 3: 1.9, 4: 2.5, 5: 3.5, 6: 0 };
+
+    function riderPremiumForAge(rider, age, gender, nhom) {
+      const maxAge = RIDER_MAX_AGE[rider.type];
+      if (maxAge !== undefined && age > maxAge) return 0;
+      const a = Math.min(Math.max(age, 0), 95);
+      switch (rider.type) {
+        case 'R29': {
+          const base = gender === 'Nam' ? PHISPBK.r29_nam[a] : PHISPBK.r29_nu[a];
+          return base * (rider.stbh / PHISPBK.r29_base);
+        }
+        case 'R21': {
+          const base = gender === 'Nam' ? PHISPBK.r21_nam[a] : PHISPBK.r21_nu[a];
+          return base * (rider.stbh / PHISPBK.r21_base);
+        }
+        case 'R25': {
+          const base = gender === 'Nam' ? PHISPBK.r25_nam[a] : PHISPBK.r25_nu[a];
+          return base * (rider.stbh / PHISPBK.r25_base);
+        }
+        case 'R22': {
+          const factor = NHOM_FACTOR_R22[nhom || 1] ?? 0;
+          return PHISPBK.r22_phi_co_ban * factor * (rider.stbh / PHISPBK.r22_base);
+        }
+        case 'R23': {
+          const factor = NHOM_FACTOR_R23[nhom || 1] ?? 0;
+          return PHISPBK.r23_phi[a] * factor * (rider.stbh / PHISPBK.r23_base);
+        }
+        case 'R26': {
+          const map = { bac: 'r26_bac', vang: 'r26_vang', bachkim: 'r26_bachkim', kimcuong: 'r26_kimcuong', lucbao: 'r26_lucbao' };
+          return PHISPBK[map[rider.tier]][a] || 0;
+        }
+      }
+      return 0;
+    }
+
+    function runEngine(inputs, rateMode) {
+      const rateTable = inputs.gender === 'Nam' ? PHISPC.nam : PHISPC.nu;
+      let age = inputs.initialAge;
+      let curDate = new Date(inputs.startDate);
+      let Jprev = 0;
+      let L = 0, M = 0, N = 0;
+      const Jhist = [], Hhist = [];
+      const yearly = [];
+      let cumSPC = 0, cumSPBK = 0;
+
+      for (let n = 1; n <= inputs.term; n++) {
+        const annualRate = annualRateForYear(rateMode, n);
+        const monthlyRate = Math.pow(1 + annualRate, 1 / 12) - 1;
+        const paying = n <= inputs.paymentYears;
+        const investedCoBan = paying ? inputs.phiCoBan * (1 - feeRateCoBan(n)) : 0;
+        const investedDongThem = paying ? inputs.phiDongThem * (1 - feeRateDongThem(n)) : 0;
+
+        let annualPhiRR = 0;
+        for (let m = 1; m <= 12; m++) {
+          if (m === 1) {
+            if (n > 1) age += 1;
+            Jprev = Jprev + investedCoBan;
+          }
+          const ratio = sarRatio(age);
+          const sar = Math.max(inputs.stbhChinh * ratio - Jprev, 0);
+          const rate = rateAt(rateTable, age);
+          const phiM = rate * sar / 1000 / 12;
+          annualPhiRR += phiM;
+          const fee = mgmtFeeMonthly(curDate.getFullYear());
+          Jprev = (Jprev - phiM - fee) * (1 + monthlyRate);
+          Jhist.push(Jprev);
+          Hhist.push(phiM);
+          curDate = addMonths(curDate, 1);
+        }
+
+        M = (M + investedDongThem) * (1 + annualRate);
+
+        let newDuyTri = 0, newHoanPhi = 0;
+        const eligible = inputs.paymentYears >= n;
+        if (n % 5 === 0 && eligible) {
+          const windowJ = Jhist.slice(Jhist.length - 60);
+          const avgJ = windowJ.reduce((a, b) => a + b, 0) / windowJ.length;
+          newDuyTri = duyTriRate(n) * avgJ;
+          if (n === 5) {
+            newHoanPhi = 0.5 * Hhist.slice(0, 60).reduce((a, b) => a + b, 0);
+          } else if (n === 10) {
+            newHoanPhi = 1.0 * Hhist.slice(60, 120).reduce((a, b) => a + b, 0);
+          }
+        }
+        L = L * (1 + annualRate) + newDuyTri;
+        N = N * (1 + annualRate) + newHoanPhi;
+
+        const GTTKCoBan = Math.max(Jprev, 0);
+        const GTTKDongThem = L + M + N;
+        const GTTKHD = GTTKCoBan + GTTKDongThem;
+        const QLBHTuVong = Math.max(GTTKCoBan, inputs.stbhChinh) + GTTKDongThem;
+        const phiChamDut = terminationFeeRate(n) * inputs.phiCoBan;
+        const giaTriHoanLai = Math.max(GTTKHD - phiChamDut, 0);
+
+        let riderPremiumYear = 0;
+        for (const r of inputs.riders) riderPremiumYear += riderPremiumForAge(r, age, inputs.gender, inputs.nhomNgheNghiep);
+        cumSPBK += riderPremiumYear;
+        const premiumThisYear = paying ? (inputs.phiCoBan + inputs.phiDongThem) : 0;
+        cumSPC += premiumThisYear;
+
+        yearly.push({
+          year: n, age, premiumThisYear, cumSPC,
+          QLBHTuVong, thuongCombined: L + N,
+          newBonusThisYear: newDuyTri + newHoanPhi,
+          bonusMilestoneEligible: (n % 5 === 0 && eligible),
+          GTTKCoBan, GTTKDongThem, GTTKHD, giaTriHoanLai,
+          riderPremiumYear, cumSPBK,
+          tongLuyKe: cumSPC + cumSPBK,
+          chenhLech: GTTKHD - (cumSPC + cumSPBK)
+        });
+      }
+      return yearly;
+    }
+
+
+    // ============ STATE ============
+    const RIDER_DEFS = [
+      { type: 'R21', label: 'Bệnh nan y', unit: 'STBH', placeholder: 'VD: 500.000.000' },
+      { type: 'R22', label: 'Thương tật bộ phận vĩnh viễn do tai nạn', unit: 'STBH', placeholder: 'VD: 500.000.000' },
+      { type: 'R23', label: 'Tử vong và thương tật nghiêm trọng do tai nạn', unit: 'STBH', placeholder: 'VD: 500.000.000' },
+      { type: 'R25', label: 'Bệnh lý nghiêm trọng', unit: 'STBH', placeholder: 'VD: 500.000.000' },
+      { type: 'R26', label: 'Chăm sóc sức khỏe toàn diện', unit: 'TIER' },
+      { type: 'R29', label: 'Trợ cấp viện phí', unit: 'STBH', placeholder: 'VD: 500.000' }
+    ];
+    const R26_TIERS = [
+      { key: 'bac', label: 'Bạc', limit: '150 triệu/năm' },
+      { key: 'vang', label: 'Vàng', limit: '250 triệu/năm' },
+      { key: 'bachkim', label: 'Bạch Kim', limit: '500 triệu/năm' },
+      { key: 'kimcuong', label: 'Kim Cương', limit: '1 tỷ/năm' },
+      { key: 'lucbao', label: 'Lục Bảo (ĐNA)', limit: '2 tỷ/năm' }
+    ];
+
+    let state = {
+      page: 1,
+      rateMode: '476',
+      customer: { name: '', dobStr: '', gender: 'Nu', nhomNgheNghiep: 1, age: null },
+      product: { stbhChinh: '', phiCoBan: '', phiDongThem: '0', termMode: '20', paymentYears: 10 },
+      riders: {},
+      results: null
+    };
+    RIDER_DEFS.forEach(r => state.riders[r.type] = { enabled: false, stbh: '', tier: 'bac' });
+
+    // ============ STBH LIMIT RULES (theo sheet 1.NĐBH cột H,I và PhiSPC cột O,P,Q) ============
+    const MAXSTBH = {
+      nam: [100, 100, 100, 100, 100, 100, 100, 100, 100, 95, 95, 95, 90, 90, 90, 85, 85, 85, 80, 80, 80, 80, 75, 75, 75, 75, 70, 70, 70, 65, 65, 65, 65, 60, 60, 60, 55, 55, 55, 55, 50, 50, 50, 45, 45, 45, 45, 40, 40, 40, 40, 35, 35, 35, 30, 30, 30, 30, 25, 25, 25, 25, 25, 20, 20, 20],
+      nu: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 95, 95, 95, 90, 90, 90, 85, 85, 85, 80, 80, 80, 75, 75, 75, 70, 70, 70, 65, 65, 65, 60, 60, 60, 55, 55, 55, 55, 50, 50, 50, 45, 45, 45, 40, 40, 40, 40, 35, 35, 35, 30, 30, 30]
+    };
+    function maxStbhMultiplier(age, gender) {
+      const arr = gender === 'Nam' ? MAXSTBH.nam : MAXSTBH.nu;
+      const idx = Math.min(Math.max(age, 0), arr.length - 1);
+      return arr[idx];
+    }
+    function stbhChinhLimits(phiCoBan, age, gender) {
+      if (!phiCoBan || age === null) return null;
+      const min = Math.max(50000000, 5 * phiCoBan);
+      const max = maxStbhMultiplier(age, gender) * phiCoBan;
+      return { min, max };
+    }
+    function phiDongThemMaxLimit(phiCoBan) {
+      if (!phiCoBan) return null;
+      return { min: 1000000, max: 5 * phiCoBan };
+    }
+    function riderStbhLimits(riderType, age, phiCoBan, stbhChinh) {
+      if (riderType === 'R21' || riderType === 'R22' || riderType === 'R23' || riderType === 'R25') {
+        if (!stbhChinh) return null;
+        return { min: 100000000, max: stbhChinh };
+      }
+      if (riderType === 'R29') {
+        if (!phiCoBan || age === null) return null;
+        let tierMax;
+        if (phiCoBan >= 100000000) tierMax = 2000000;
+        else if (phiCoBan >= 50000000) tierMax = 1000000;
+        else if (phiCoBan >= 30000000) tierMax = 500000;
+        else if (phiCoBan >= 10000000) tierMax = 300000;
+        else return { notAllowed: true };
+        const ageCap = age >= 18 ? 2000000 : 300000;
+        const min = phiCoBan >= 10000000 ? 100000 : null;
+        if (min === null) return { notAllowed: true };
+        return { min, max: Math.min(tierMax, ageCap) };
+      }
+      return null;
+    }
+    const R26_TIER_ORDER = ['KHÔNG', 'Bạc', 'Vàng', 'Bạch Kim', 'Kim Cương', 'Lục Bảo'];
+    function r26TierRange(phiCoBan) {
+      if (!phiCoBan) return null;
+      function tierFor(threshold) {
+        if (phiCoBan >= 50000000) return 'Lục Bảo';
+        if (phiCoBan >= 30000000) return 'Kim Cương';
+        if (phiCoBan >= 20000000) return 'Bạch Kim';
+        if (phiCoBan >= 10000000) return 'Vàng';
+        if (phiCoBan >= 5000000) return 'Bạc';
+        return 'KHÔNG';
+      }
+      const minTier = phiCoBan >= 5000000 ? 'Bạc' : 'KHÔNG';
+      const maxTier = tierFor();
+      return { minTier, maxTier };
+    }
+    function resolvedTerm() {
+      if (state.product.termMode === 'den90') {
+        return state.customer.age !== null ? Math.max(90 - state.customer.age, 1) : null;
+      }
+      return Number(state.product.termMode);
+    }
+    function daysInMonth(month, year) {
+      if (!month) return 31;
+      const y = year || 2000;
+      return new Date(y, Number(month), 0).getDate();
+    }
+
+    // ============ HELPERS ============
+    function fmtMoney(n) {
+      if (n === null || n === undefined || isNaN(n)) return '0';
+      return Math.round(n).toLocaleString('vi-VN');
+    }
+    function fmtMoneyTh(n) { return fmtMoney(n / 1000); } // hiển thị theo nghìn đồng cho bảng minh họa
+    function parseNum(str) {
+      if (!str) return 0;
+      return Number(String(str).replace(/[.,\s]/g, '')) || 0;
+    }
+    function attachThousandFormatter(input) {
+      input.addEventListener('input', (e) => {
+        const cursorFromEnd = input.value.length - input.selectionStart;
+        let raw = input.value.replace(/[^\d]/g, '');
+        input.value = raw ? Number(raw).toLocaleString('vi-VN') : '';
+        const pos = Math.max(input.value.length - cursorFromEnd, 0);
+        input.setSelectionRange(pos, pos);
+      });
+    }
+    function calcAge(day, month, year, today) {
+      if (!day || !month || !year) return null;
+      const dob = new Date(Number(year), Number(month) - 1, Number(day));
+      let age = today.getFullYear() - dob.getFullYear();
+      const hadBday = (today.getMonth() > dob.getMonth()) || (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
+      if (!hadBday) age--;
+      return age;
+    }
+    function todayISO() { return new Date().toISOString().slice(0, 10); }
+
+    // ============ PASSWORD GATE ============
+    function safeStorageGet(key) {
+      try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+    function safeStorageSet(key, val) {
+      try { localStorage.setItem(key, val); } catch (e) { /* ignore: storage unavailable (e.g. file:// on mobile Safari) */ }
+    }
+    function initGate() {
+      const gate = document.getElementById('gate');
+      const app = document.getElementById('app');
+      if (safeStorageGet('atpn_unlocked') === 'yes') {
+        gate.style.display = 'none'; app.style.display = 'block';
+        return;
+      }
+      const btn = document.getElementById('gate-submit');
+      const passEl = document.getElementById('gate-pass');
+      if (!btn || !passEl) { console.error('Gate elements not found'); return; }
+      const tryUnlock = () => {
+        const val = (passEl.value || '').trim();
+        if (val === '30nam') {
+          safeStorageSet('atpn_unlocked', 'yes');
+          gate.style.display = 'none';
+          app.style.display = 'block';
+          renderAll();
+        } else {
+          document.getElementById('gate-error').style.display = 'block';
+        }
+      };
+      btn.addEventListener('click', tryUnlock);
+      passEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); } });
+    }
+
+    // ============ RENDER: STEP INDICATOR ============
+    function renderSteps() {
+      const el = document.getElementById('steps');
+      const labels = ['1. Thông tin khách hàng', '2. Bảng minh họa tổng', '3. Tóm tắt quyền lợi'];
+      el.innerHTML = labels.map((l, i) => {
+        const n = i + 1;
+        const cls = n === state.page ? 'step active' : (n < state.page ? 'step done' : 'step');
+        return `<div class="${cls}" data-step="${n}"><span class="step-num">${n}</span><span class="step-label">${l.slice(3)}</span></div>`;
+      }).join('<div class="step-divider"></div>');
+      el.querySelectorAll('.step').forEach(elm => {
+        elm.addEventListener('click', () => {
+          const n = Number(elm.dataset.step);
+          if (n === 1 || state.results) { state.page = n; renderAll(); }
+        });
+      });
+    }
+
+    // ============ RENDER: PAGE 1 ============
+    function renderPage1() {
+      const root = document.getElementById('page-root');
+      const term = resolvedTerm();
+      const phiCoBanNum = parseNum(state.product.phiCoBan);
+      const limStbh = stbhChinhLimits(phiCoBanNum, state.customer.age, state.customer.gender);
+      const limPDT = phiDongThemMaxLimit(phiCoBanNum);
+      const dailySaving = phiCoBanNum ? Math.round(phiCoBanNum / 365) : null;
+      root.innerHTML = `
+  <div class="card">
+    <h2 class="card-title">1. Thông tin khách hàng</h2>
+    <div class="error-banner" id="form-errors" style="display:none"></div>
+    <div class="grid2">
+      <div class="field">
+        <div class="inline-row">
+          <label>Họ và tên</label>
+          <input type="text" id="f-name" value="${state.customer.name}" placeholder="Nguyễn Văn A">
+        </div>
+      </div>
+      <div class="field">
+        <div class="inline-row">
+          <label>Ngày sinh</label>
+          <input type="text" inputmode="numeric" id="f-dob" value="${state.customer.dobStr || ''}" placeholder="dd/mm/yyyy" maxlength="10">
+        </div>
+        <div class="hint" id="age-hint">${state.customer.age !== null ? `Tuổi được bảo hiểm: <b>${state.customer.age}</b> (ngày tham gia: ${new Date().toLocaleDateString('vi-VN')})` : 'Nhập đầy đủ ngày/tháng/năm sinh theo định dạng dd/mm/yyyy để tính tuổi.'}</div>
+      </div>
+      <div class="field">
+          <div class="inline-row">
+            <label>Giới tính</label>
+            <div class="seg">
+              <button type="button" class="seg-btn ${state.customer.gender === 'Nam' ? 'active' : ''}" data-g="Nam">Nam</button>
+              <button type="button" class="seg-btn ${state.customer.gender === 'Nu' ? 'active' : ''}" data-g="Nu">Nữ</button>
+            </div>
+          </div>
+      </div>
+      <div class="field">
+          <div class="inline-row">
+            <label>Nhóm nghề</label>
+            <select id="f-nhom">
+              ${[1, 2, 3, 4, 5, 6].map(n => `<option value="${n}" ${state.customer.nhomNgheNghiep === n ? 'selected' : ''}>${n}</option>`).join('')}
+            </select>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">2. Sản phẩm chính</h2>
+    <div class="grid2">
+      <div class="field">
+        <label>Phí bảo hiểm cơ bản / năm</label>
+        <input type="text" inputmode="numeric" id="f-phicoban" value="${state.product.phiCoBan}" placeholder="VD: 30.000.000">
+        <div class="hint" id="hint-daily-saving">${dailySaving !== null ? `Tiết kiệm: <b>${fmtMoney(dailySaving)} đồng/ngày</b>` : ''}</div>
+      </div>
+      <div class="field">
+        <label>Phí bảo hiểm đóng thêm / năm</label>
+        <input type="text" inputmode="numeric" id="f-phidongthem" value="${state.product.phiDongThem}" placeholder="VD: 0">
+        <div class="hint" id="hint-phidongthem">${limPDT ? `Tối đa: <b>${fmtMoney(limPDT.max)} đ</b>/năm (5 lần phí cơ bản).` : ''}</div>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+        <label>Số tiền bảo hiểm (Sản phẩm chính)</label>
+        <input type="text" inputmode="numeric" id="f-stbh" value="${state.product.stbhChinh}" placeholder="VD: 1.000.000.000">
+        <div class="hint" id="hint-stbh-chinh">${stbhHintHtml(limStbh)}</div>
+      </div>
+      <div class="field">
+        <div class="inline-row">
+          <label>Thời hạn hợp đồng</label>
+          <select id="f-term">
+            <option value="20" ${state.product.termMode === '20' ? 'selected' : ''}>20 năm</option>
+            <option value="25" ${state.product.termMode === '25' ? 'selected' : ''}>25 năm</option>
+            <option value="30" ${state.product.termMode === '30' ? 'selected' : ''}>30 năm</option>
+            <option value="den90" ${state.product.termMode === 'den90' ? 'selected' : ''}>Tới tuổi 90</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <div class="inline-row">
+          <label>Thời hạn đóng phí dự kiến (năm)</label>
+          <input type="number" id="f-payyears" min="4" max="${term || 30}" value="${state.product.paymentYears}">
+        </div>
+        <div class="hint">Tối thiểu 4 năm theo quy định bắt buộc của sản phẩm.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">3. Sản phẩm bán kèm</h2>
+    <div class="riders-list">
+      ${RIDER_DEFS.map(r => renderRiderRow(r)).join('')}
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="btn-go-page2">Xem bảng minh họa tổng →</button>
+  </div>
+  `;
+      bindPage1Events();
+    }
+
+    function stbhHintHtml(lim) {
+      if (!lim) return 'Nhập Phí bảo hiểm cơ bản và Ngày sinh để xem giới hạn STBH cho phép.';
+      return `STBH cho phép: <b>${fmtMoney(lim.min)} đ</b> – <b>${fmtMoney(lim.max)} đ</b> (theo phí cơ bản và tuổi/giới tính NĐBH).`;
+    }
+    function riderFeeHtml(r, st) {
+      if (state.customer.age === null) return 'Phí năm: —';
+      let feeRider;
+      if (r.unit === 'TIER') feeRider = { type: r.type, tier: st.tier };
+      else feeRider = { type: r.type, stbh: parseNum(st.stbh) };
+      const fee = riderPremiumForAge(feeRider, state.customer.age, state.customer.gender, state.customer.nhomNgheNghiep);
+      return `Phí năm: <b>${fmtMoney(fee)} đ</b>`;
+    }
+    function renderRiderRow(r) {
+      const st = state.riders[r.type];
+      const age = state.customer.age;
+      const phiCoBan = parseNum(state.product.phiCoBan);
+      const stbhChinh = parseNum(state.product.stbhChinh);
+      if (r.unit === 'TIER') {
+        const tierRange = r26TierRange(phiCoBan);
+        return `
+    <div class="rider-row">
+      <label class="rider-check">
+        <input type="checkbox" data-rider="${r.type}" class="rider-toggle" ${st.enabled ? 'checked' : ''}>
+        <span><b>${r.type}</b> — ${r.label}</span>
+      </label>
+      <div class="rider-input-col">
+        <div class="rider-input-row">
+          <select class="rider-input" data-rider-tier="${r.type}" ${st.enabled ? '' : 'disabled'}>
+            ${R26_TIERS.map(t => `<option value="${t.key}" ${st.tier === t.key ? 'selected' : ''}>${t.label} (${t.limit})</option>`).join('')}
+          </select>
+          ${st.enabled ? `<span class="rider-fee" id="fee-rider-R26">${riderFeeHtml(r, st)}</span>` : ''}
+        </div>
+        ${st.enabled ? `<div class="hint" id="hint-rider-R26">${tierRange ? `Hạng mức cho phép theo phí cơ bản: <b>${tierRange.minTier}</b> – <b>${tierRange.maxTier}</b>.` : 'Nhập Phí bảo hiểm cơ bản để xem hạng mức cho phép.'}</div>` : ''}
+      </div>
+    </div>`;
+      }
+      const lim = riderStbhLimits(r.type, age, phiCoBan, stbhChinh);
+      return `
+  <div class="rider-row">
+    <label class="rider-check">
+      <input type="checkbox" data-rider="${r.type}" class="rider-toggle" ${st.enabled ? 'checked' : ''}>
+      <span><b>${r.type}</b> — ${r.label}</span>
+    </label>
+    <div class="rider-input-col">
+      <div class="rider-input-row">
+        <input type="text" inputmode="numeric" class="rider-input" data-rider-stbh="${r.type}" placeholder="${r.placeholder}" value="${st.stbh}" ${st.enabled ? '' : 'disabled'}>
+        ${st.enabled ? `<span class="rider-fee" id="fee-rider-${r.type}">${riderFeeHtml(r, st)}</span>` : ''}
+      </div>
+      ${st.enabled ? `<div class="hint" id="hint-rider-${r.type}">${riderHintHtml(r.type, lim)}</div>` : ''}
+    </div>
+  </div>`;
+    }
+    function riderHintHtml(type, lim) {
+      if (!lim) return type === 'R29'
+        ? 'Nhập Phí bảo hiểm cơ bản và Ngày sinh để xem giới hạn STBH.'
+        : 'Nhập Số tiền bảo hiểm (Sản phẩm chính) để xem giới hạn STBH.';
+      if (lim.notAllowed) return '⚠️ Phí bảo hiểm cơ bản chưa đủ điều kiện tham gia sản phẩm này.';
+      let extra = '';
+      const nhom = state.customer.nhomNgheNghiep;
+      if (type === 'R22' && NHOM_FACTOR_R22[nhom] === 0) extra = ' ⚠️ Nhóm nghề này không được nhận bảo hiểm R22.';
+      if (type === 'R23' && NHOM_FACTOR_R23[nhom] === 0) extra = ' ⚠️ Nhóm nghề này không được nhận bảo hiểm R23.';
+      return `STBH: <b>${fmtMoney(lim.min)}</b> – <b>${fmtMoney(lim.max)} đ</b>${extra}`;
+    }
+
+    function bindPage1Events() {
+      document.getElementById('f-name').addEventListener('input', e => state.customer.name = e.target.value);
+
+      const dobEl = document.getElementById('f-dob');
+      dobEl.addEventListener('input', () => {
+        let digits = dobEl.value.replace(/[^\d]/g, '').slice(0, 8);
+        let formatted = digits;
+        if (digits.length > 4) formatted = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+        else if (digits.length > 2) formatted = digits.slice(0, 2) + '/' + digits.slice(2);
+        dobEl.value = formatted;
+        state.customer.dobStr = formatted;
+        const m = formatted.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (m) {
+          const day = +m[1], month = +m[2], year = +m[3];
+          const valid = month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth(month, year);
+          state.customer.age = valid ? calcAge(day, month, year, new Date()) : null;
+        } else {
+          state.customer.age = null;
+        }
+        const hintEl = document.getElementById('age-hint');
+        if (hintEl) {
+          hintEl.innerHTML = state.customer.age !== null
+            ? `Tuổi được bảo hiểm: <b>${state.customer.age}</b> (ngày tham gia: ${new Date().toLocaleDateString('vi-VN')})`
+            : (formatted.length === 10 ? '⚠️ Ngày sinh không hợp lệ.' : 'Nhập đầy đủ ngày/tháng/năm sinh theo định dạng dd/mm/yyyy để tính tuổi.');
+        }
+        refreshHints();
+      });
+
+      document.querySelectorAll('.seg-btn').forEach(b => {
+        b.addEventListener('click', () => { state.customer.gender = b.dataset.g; renderPage1(); });
+      });
+      document.getElementById('f-nhom').addEventListener('change', e => {
+        state.customer.nhomNgheNghiep = Number(e.target.value);
+        refreshHints();
+      });
+      ['f-stbh', 'f-phicoban', 'f-phidongthem'].forEach(id => {
+        const el = document.getElementById(id);
+        attachThousandFormatter(el);
+        el.addEventListener('input', () => {
+          if (id === 'f-stbh') state.product.stbhChinh = el.value;
+          if (id === 'f-phicoban') state.product.phiCoBan = el.value;
+          if (id === 'f-phidongthem') state.product.phiDongThem = el.value;
+          refreshHints();
+        });
+      });
+      document.getElementById('f-term').addEventListener('change', e => { state.product.termMode = e.target.value; renderPage1(); });
+      document.getElementById('f-payyears').addEventListener('input', e => state.product.paymentYears = Number(e.target.value));
+
+      document.querySelectorAll('.rider-toggle').forEach(cb => {
+        cb.addEventListener('change', () => {
+          state.riders[cb.dataset.rider].enabled = cb.checked;
+          renderPage1();
+        });
+      });
+      document.querySelectorAll('[data-rider-stbh]').forEach(inp => {
+        attachThousandFormatter(inp);
+        inp.addEventListener('input', () => { state.riders[inp.dataset.riderStbh].stbh = inp.value; refreshHints(); });
+      });
+      document.querySelectorAll('[data-rider-tier]').forEach(sel => {
+        sel.addEventListener('change', () => { state.riders[sel.dataset.riderTier].tier = sel.value; refreshHints(); });
+      });
+
+      document.getElementById('btn-go-page2').addEventListener('click', () => {
+        if (!validatePage1()) return;
+        computeResults();
+        state.page = 2;
+        renderAll();
+      });
+    }
+
+    function refreshHints() {
+      const age = state.customer.age;
+      const phiCoBan = parseNum(state.product.phiCoBan);
+      const stbhChinh = parseNum(state.product.stbhChinh);
+      const gender = state.customer.gender;
+
+      const stbhHintEl = document.getElementById('hint-stbh-chinh');
+      if (stbhHintEl) stbhHintEl.innerHTML = stbhHintHtml(stbhChinhLimits(phiCoBan, age, gender));
+
+      const savingEl = document.getElementById('hint-daily-saving');
+      if (savingEl) savingEl.innerHTML = phiCoBan ? `Tiết kiệm: <b>${fmtMoney(Math.round(phiCoBan / 365))} đồng/ngày</b>` : '';
+
+      const pdtHintEl = document.getElementById('hint-phidongthem');
+      if (pdtHintEl) {
+        const limPDT = phiDongThemMaxLimit(phiCoBan);
+        pdtHintEl.innerHTML = limPDT ? `Tối đa: <b>${fmtMoney(limPDT.max)} đ</b>/năm (5 lần phí cơ bản).` : '';
+      }
+
+      RIDER_DEFS.forEach(r => {
+        const st = state.riders[r.type];
+        if (r.type === 'R26') {
+          const el = document.getElementById('hint-rider-R26');
+          if (el) {
+            const tr = r26TierRange(phiCoBan);
+            el.innerHTML = tr ? `Hạng mức cho phép theo phí cơ bản: <b>${tr.minTier}</b> – <b>${tr.maxTier}</b>.` : 'Nhập Phí bảo hiểm cơ bản để xem hạng mức cho phép.';
+          }
+          const feeEl = document.getElementById('fee-rider-R26');
+          if (feeEl) feeEl.innerHTML = riderFeeHtml(r, st);
+          return;
+        }
+        const el = document.getElementById('hint-rider-' + r.type);
+        if (el) {
+          const lim = riderStbhLimits(r.type, age, phiCoBan, stbhChinh);
+          el.innerHTML = riderHintHtml(r.type, lim);
+        }
+        const feeEl = document.getElementById('fee-rider-' + r.type);
+        if (feeEl) feeEl.innerHTML = riderFeeHtml(r, st);
+      });
+    }
+
+    function validatePage1() {
+      const errs = [];
+      const term = resolvedTerm();
+      if (state.customer.age === null) errs.push('Vui lòng chọn đầy đủ ngày sinh.');
+      if (!parseNum(state.product.stbhChinh)) errs.push('Vui lòng nhập Số tiền bảo hiểm.');
+      if (!parseNum(state.product.phiCoBan)) errs.push('Vui lòng nhập Phí bảo hiểm cơ bản.');
+      if (state.product.paymentYears < 4) errs.push('Thời hạn đóng phí dự kiến tối thiểu 4 năm.');
+      if (term !== null && state.product.paymentYears > term) errs.push('Thời hạn đóng phí không được dài hơn Thời hạn hợp đồng.');
+      if (state.customer.age !== null && (state.customer.age < 0 || state.customer.age > 85)) errs.push('Tuổi được bảo hiểm ngoài phạm vi hỗ trợ (0–85 tuổi).');
+      const banner = document.getElementById('form-errors');
+      if (errs.length) {
+        banner.innerHTML = errs.map(e => '• ' + e).join('<br>');
+        banner.style.display = 'block';
+        banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
+      banner.style.display = 'none';
+      return true;
+    }
+
+    // ============ COMPUTE ============
+    function computeResults() {
+      const riders = [];
+      Object.keys(state.riders).forEach(type => {
+        const r = state.riders[type];
+        if (!r.enabled) return;
+        if (type === 'R26') { riders.push({ type, tier: r.tier }); }
+        else { riders.push({ type, stbh: parseNum(r.stbh) }); }
+      });
+      const inputs = {
+        gender: state.customer.gender,
+        initialAge: state.customer.age,
+        nhomNgheNghiep: state.customer.nhomNgheNghiep,
+        stbhChinh: parseNum(state.product.stbhChinh),
+        phiCoBan: parseNum(state.product.phiCoBan),
+        phiDongThem: parseNum(state.product.phiDongThem),
+        term: resolvedTerm(),
+        paymentYears: state.product.paymentYears,
+        startDate: todayISO(),
+        riders
+      };
+      state.results = {
+        '476': runEngine(inputs, '476'),
+        '425': runEngine(inputs, '425'),
+        'min': runEngine(inputs, 'min')
+      };
+      state.lastInputs = inputs;
+    }
+
+
+    // ============ RENDER: PAGE 2 ============
+    const RATE_OPTIONS = [
+      { key: '476', label: '4,76%/năm' },
+      { key: '425', label: '4,25%/năm' },
+      { key: 'min', label: 'LS cam kết' }
+    ];
+
+    function renderPage2() {
+      const root = document.getElementById('page-root');
+      const data = state.results[state.rateMode];
+      if (state.tableMode === undefined) state.tableMode = 'spc';
+      root.innerHTML = `
+  <div class="card">
+    <div class="summary-head">
+      <div>
+        <h2 class="card-title" style="margin-bottom:2px">Bảng minh họa tổng</h2>
+        <div class="hint">${state.customer.name || 'Khách hàng'} · ${state.customer.gender === 'Nam' ? 'Nam' : 'Nữ'} · ${state.customer.age} tuổi · STBH ${fmtMoney(state.lastInputs.stbhChinh)} đ</div>
+      </div>
+      <div class="rate-toggle">
+        ${RATE_OPTIONS.map(o => `<button class="rate-btn ${state.rateMode === o.key ? 'active' : ''}" data-rate="${o.key}">${o.label}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="view-toggle">
+      <button class="view-btn ${state.tableMode === 'spc' ? 'active' : ''}" data-table="spc">Sản phẩm chính</button>
+      <button class="view-btn ${state.tableMode === 'tong' ? 'active' : ''}" data-table="tong">Tổng sản phẩm</button>
+    </div>
+
+    ${state.tableMode === 'spc' ? renderTableSPC(data) : renderTableTong(data)}
+    <div class="hint">Đơn vị: Nghìn đồng. Công cụ tham khảo nội bộ, tài liệu minh họa chính thức do Bảo Việt Nhân thọ phát hành.</div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-secondary" id="btn-back-1">← Quay lại thông tin</button>
+    <button class="btn btn-primary" id="btn-go-page3">Xem tóm tắt quyền lợi →</button>
+  </div>
+  `;
+      bindPage2Events();
+    }
+
+    function renderTableSPC(data) {
+      return `
+  <div class="table-wrap">
+    <table class="illus-table">
+      <thead><tr>
+        <th class="sticky">Năm HĐ / Tuổi</th>
+        <th>Tổng phí BH lũy kế</th>
+        <th>Thưởng duy trì HĐ &amp; hoàn phí rủi ro</th>
+        <th>Giá trị tài khoản HĐ</th>
+      </tr></thead>
+      <tbody>
+        ${data.map(y => `<tr class="${y.year % 5 === 0 ? 'milestone-row' : ''}">
+          <td class="sticky">${y.year} / Tuổi ${y.age}</td>
+          <td>${fmtMoneyTh(y.cumSPC)}</td>
+          <td>${y.bonusMilestoneEligible ? fmtMoneyTh(y.newBonusThisYear) : ''}</td>
+          <td>${fmtMoneyTh(y.GTTKHD)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+    }
+
+    function renderTableTong(data) {
+      return `
+  <div class="table-wrap">
+    <table class="illus-table">
+      <thead><tr>
+        <th class="sticky">Năm HĐ / Tuổi</th>
+        <th>Phí SPBK hàng năm</th>
+        <th>Tổng phí BH lũy kế (SPC + SPBK)</th>
+        <th>Giá trị tài khoản HĐ</th>
+      </tr></thead>
+      <tbody>
+        ${data.map(y => `<tr class="${y.year % 5 === 0 ? 'milestone-row' : ''}">
+          <td class="sticky">${y.year} / Tuổi ${y.age}</td>
+          <td>${fmtMoneyTh(y.riderPremiumYear)}</td>
+          <td>${fmtMoneyTh(y.tongLuyKe)}</td>
+          <td>${fmtMoneyTh(y.GTTKHD)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+    }
+
+    function bindPage2Events() {
+      document.querySelectorAll('.view-btn').forEach(b => {
+        b.addEventListener('click', () => { state.tableMode = b.dataset.table; renderPage2(); });
+      });
+      document.querySelectorAll('.rate-btn').forEach(b => {
+        b.addEventListener('click', () => { state.rateMode = b.dataset.rate; renderPage2(); });
+      });
+      document.getElementById('btn-back-1').addEventListener('click', () => { state.page = 1; renderAll(); });
+      document.getElementById('btn-go-page3').addEventListener('click', () => { state.page = 3; renderAll(); });
+    }
+
+    // ============ R26 BENEFIT TABLE (theo sheet R26) ============
+    const R26_TIER_IDX = { bac: 0, vang: 1, bachkim: 2, kimcuong: 3, lucbao: 4 };
+    function r26BenefitRows(tier) {
+      const i = R26_TIER_IDX[tier];
+      const pick = arr => arr[i];
+      return [
+        { label: 'Giới hạn bảo hiểm tối đa Quyền lợi Điều trị Nội trú', text: pick(['150 triệu/năm', '250 triệu/năm', '500 triệu/năm', '1 tỷ/năm', '2 tỷ/năm']) },
+        { label: 'Điều trị nội trú có phẫu thuật', note: 'Mỗi đợt điều trị', text: pick(['60 triệu', '120 triệu', '250 triệu', '400 triệu', '800 triệu']) },
+        { label: 'Điều trị nội trú không phẫu thuật', note: 'Mỗi đợt điều trị', text: pick(['30 triệu', '60 triệu', '125 triệu', '200 triệu', '400 triệu']) },
+        { label: 'Chi phí Phòng và Giường', note: 'Tối đa 60 ngày/năm', text: pick(['750 nghìn/ngày', '1,25 triệu/ngày', '2,5 triệu/ngày', '5 triệu/ngày', '10 triệu/ngày']) },
+        { label: 'Chi phí Phòng và Giường tại Khoa Hồi sức tích cực (ICU)', note: 'Tối đa 30 ngày/năm', text: 'Chi phí y tế thực tế' },
+        { label: 'Chi phí Phẫu thuật', text: 'Chi phí y tế thực tế' },
+        { label: 'Điều trị ung thư, cấy ghép nội tạng', text: 'Chi phí y tế thực tế' },
+        { label: 'Chi phí điều trị trước/sau nhập viện, chi phí y tế nội trú khác', text: 'Chi phí y tế thực tế' },
+        { label: 'Chi phí Giường dành cho người chăm sóc', note: 'Áp dụng khi NĐBH dưới 18 tuổi, tối đa 30 ngày/năm', text: pick(['300 nghìn/ngày', '500 nghìn/ngày', '700 nghìn/ngày', '1 triệu/ngày', '2 triệu/ngày']) },
+        { label: 'Chi phí điều trị nội trú tổn thương răng do tai nạn', note: 'Mỗi năm', text: pick(['1,5 triệu', '2 triệu', '4 triệu', '6 triệu', '8 triệu']) },
+        { label: 'Chi phí chạy thận nhân tạo định kỳ trong ngày', note: 'Mỗi năm', text: pick(['3 triệu', '7 triệu', '12 triệu', '15 triệu', '30 triệu']) },
+        { label: 'Chi phí vận chuyển cấp cứu trong ngày', note: 'Mỗi năm', text: pick(['1,5 triệu', '2 triệu', '4 triệu', '6 triệu', '8 triệu']) },
+        { label: 'Chi phí điều trị trong ngày', note: 'Cấp cứu, nha khoa do tai nạn; sốt xuất huyết, cúm, viêm phổi, viêm phế quản', text: pick(['4 triệu', '6 triệu', '12 triệu', '20 triệu', '30 triệu']) },
+        { label: 'Chi phí phẫu thuật trong ngày', text: pick(['15 triệu/ngày', '30 triệu/ngày', '60 triệu/ngày', '100 triệu/ngày', '200 triệu/ngày']) }
+      ];
+    }
+
+    // ============ BUILD BENEFIT SECTIONS (theo sheet 4.QUYỀN LỢI) ============
+    function buildBenefitSections() {
+      const inputs = state.lastInputs;
+      const stbhChinh = inputs.stbhChinh;
+      const byType = {};
+      inputs.riders.forEach(r => byType[r.type] = r);
+      const stbhR23 = byType.R23 ? byType.R23.stbh : 0;
+      const sections = [];
+
+      if (byType.R26) {
+        const tierLabel = R26_TIERS.find(t => t.key === byType.R26.tier).label;
+        sections.push({ title: `CHĂM SÓC SỨC KHỎE TOÀN DIỆN (R26) — Chương trình ${tierLabel}`, rows: r26BenefitRows(byType.R26.tier) });
+      }
+      if (byType.R29) {
+        const s = byType.R29.stbh;
+        sections.push({
+          title: 'TRỢ CẤP VIỆN PHÍ (R29)', rows: [
+            { label: 'Nằm viện cơ bản', note: 'Tối đa 3 lần/năm, 50 ngày/năm', value: s },
+            { label: 'Nằm viện đặc biệt (ICU)', note: 'Tối đa 30 ngày/năm, 300 ngày toàn hợp đồng', value: s * 2 },
+            { label: 'Phẫu thuật cơ bản', note: 'Tối đa 2 lần/năm, 10 lần toàn hợp đồng', value: s * 5 },
+            { label: 'Phẫu thuật đặc biệt', value: s * 10 },
+            { label: 'Vận chuyển cấp cứu', note: 'Tối đa 1 triệu đồng/lần, 2 lần/năm', value: Math.min(s * 2, 1000000) }
+          ]
+        });
+      }
+      if (byType.R21) {
+        const s = byType.R21.stbh;
+        sections.push({
+          title: 'BỆNH NAN Y (R21)', rows: [
+            { label: 'Ung thư giai đoạn đầu', value: s / 4 },
+            { label: 'Ung thư giai đoạn cuối / Đột quỵ / Nhồi máu cơ tim', note: 'Trừ đi quyền lợi giai đoạn đầu đã trả (nếu có)', value: s }
+          ]
+        });
+      }
+      if (byType.R25) {
+        const s = byType.R25.stbh;
+        sections.push({
+          title: 'BỆNH LÝ NGHIÊM TRỌNG (R25)', rows: [
+            { label: '38 Bệnh lý nghiêm trọng giai đoạn đầu', value: s / 4 },
+            { label: '62 Bệnh lý nghiêm trọng giai đoạn cuối', note: 'Trừ đi quyền lợi giai đoạn đầu đã trả (nếu có)', value: s },
+            { label: '05 Bệnh lý nghiêm trọng giai đoạn cuối theo giới tính', note: 'Ung thư tiền liệt tuyến, tinh hoàn, vú, cổ tử cung, buồng trứng', value: 1.25 * s }
+          ]
+        });
+      }
+      if (byType.R22) {
+        sections.push({
+          title: 'THƯƠNG TẬT BỘ PHẬN VĨNH VIỄN DO TAI NẠN (R22)', rows: [
+            { label: 'Mất từ 1 đốt ngón tay, 1 đốt ngón chân, 1 mắt, 1 tai, mất tiếng nói...', value: byType.R22.stbh }
+          ]
+        });
+      }
+      if (byType.R23) {
+        sections.push({
+          title: 'THƯƠNG TẬT NGHIÊM TRỌNG DO TAI NẠN (R23)', rows: [
+            { label: 'Mất chức năng không thể phục hồi của 2/6 bộ phận (mắt, chân, tay), bỏng nặng, hôn mê sâu, mất khả năng sống độc lập', value: byType.R23.stbh }
+          ]
+        });
+      }
+
+      sections.push({
+        title: 'TỬ VONG', rows: [
+          { label: 'Không do tai nạn', value: stbhChinh },
+          { label: 'Tai nạn thông thường', note: 'Điện giật, đuối nước, tai nạn giao thông/lao động/sinh hoạt...', value: stbhChinh + stbhR23 },
+          { label: 'Tai nạn máy bay', value: stbhChinh + 2 * stbhR23 }
+        ]
+      });
+
+      const r476 = state.results['476'];
+      const gttkRows = [];
+      [10, 15, 20].forEach(y => {
+        if (r476.length >= y) gttkRows.push({ label: `Tại năm hợp đồng số ${y}`, value: r476[y - 1].GTTKHD });
+      });
+      if (gttkRows.length) {
+        sections.push({ title: 'GIÁ TRỊ TÀI KHOẢN HỢP ĐỒNG', note: 'Lãi suất minh họa 4,76%/năm', rows: gttkRows });
+      }
+      return sections;
+    }
+
+    function renderBenefitSection(sec) {
+      return `
+  <div class="benefit-section">
+    <div class="benefit-section-title">${sec.title}${sec.note ? `<span class="note" style="display:block;font-weight:400;margin-top:2px">${sec.note}</span>` : ''}</div>
+    <table class="benefit-table"><tbody>
+      ${sec.rows.map(r => `<tr>
+        <td>${r.label}${r.note ? `<span class="note">${r.note}</span>` : ''}</td>
+        <td>${r.text ? r.text : fmtMoney(r.value) + ' đ'}</td>
+      </tr>`).join('')}
+    </tbody></table>
+  </div>`;
+    }
+
+    // ============ RENDER: PAGE 3 ============
+    function renderPage3() {
+      const root = document.getElementById('page-root');
+      const sections = buildBenefitSections();
+      root.innerHTML = `
+  <div class="card">
+    <h2 class="card-title">Tóm tắt quyền lợi bảo hiểm</h2>
+    <div class="hint" style="margin-bottom:16px">${state.customer.name || 'Khách hàng'} · ${state.customer.gender === 'Nam' ? 'Nam' : 'Nữ'} · ${state.customer.age} tuổi</div>
+    ${sections.map(renderBenefitSection).join('')}
+    <div class="disclaimer-box">
+      Công cụ tham khảo nội bộ, tài liệu minh họa chính thức do Bảo Việt Nhân thọ phát hành.
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-secondary" id="btn-back-2">← Quay lại bảng minh họa</button>
+    <button class="btn btn-primary" id="btn-restart">Tạo minh họa mới</button>
+  </div>
+  `;
+      document.getElementById('btn-back-2').addEventListener('click', () => { state.page = 2; renderAll(); });
+      const restartBtn = document.getElementById('btn-restart');
+      let restartArmed = false;
+      restartBtn.addEventListener('click', () => {
+        if (!restartArmed) {
+          restartArmed = true;
+          restartBtn.textContent = 'Bấm lần nữa để xác nhận xóa';
+          restartBtn.classList.add('btn-danger-armed');
+          setTimeout(() => { restartArmed = false; restartBtn.textContent = 'Tạo minh họa mới'; restartBtn.classList.remove('btn-danger-armed'); }, 4000);
+          return;
+        }
+        location.reload();
+      });
+    }
+
+    // ============ MAIN RENDER DISPATCH ============
+    function renderAll() {
+      renderSteps();
+      if (state.page === 1) renderPage1();
+      else if (state.page === 2) renderPage2();
+      else if (state.page === 3) renderPage3();
+      window.scrollTo(0, 0);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        initGate();
+        renderAll();
+      } catch (e) {
+        document.body.innerHTML = '<div style="padding:24px;font-family:"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;color:#B5562D">Đã xảy ra lỗi khi tải công cụ: ' + e.message + '<br><br>Vui lòng thử mở lại bằng Chrome/Safari, hoặc liên hệ quản trị viên.</div>';
+        console.error(e);
+      }
+    });
+
+  </script>
+</body>
+
+</html>
