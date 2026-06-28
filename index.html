@@ -1849,8 +1849,11 @@
       let riderTotal = 0;
       riderTypes.forEach(type => {
         const r = state.riders[type];
-        if (r && r.enabled) riderTotal += parseNum(r.stbh) || 0;
+        if (!r || !r.enabled) return;
+        const riderInput = type === 'R26' ? { type, tier: r.tier } : { type, stbh: parseNum(r.stbh) };
+        riderTotal += riderPremiumForAge(riderInput, state.customer.age, state.customer.gender, state.customer.nhomNgheNghiep);
       });
+
       const total = phiCoBan + riderTotal;
       el.value = total > 0 ? fmtMoney(total) : '';
     }
