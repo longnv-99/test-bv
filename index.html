@@ -2086,9 +2086,9 @@
         const s = byType.R25.stbh;
         sections.push({
           title: 'BỆNH LÝ NGHIÊM TRỌNG (R25)', rows: [
-            { label: '38 Bệnh lý nghiêm trọng giai đoạn đầu', value: s / 4 },
-            { label: '62 Bệnh lý nghiêm trọng giai đoạn cuối', note: 'Trừ đi quyền lợi giai đoạn đầu đã trả (nếu có)', value: s },
-            { label: '05 Bệnh lý nghiêm trọng giai đoạn cuối theo giới tính', note: 'Ung thư tiền liệt tuyến, tinh hoàn, vú, cổ tử cung, buồng trứng', value: 1.25 * s }
+            { label: '38 Bệnh lý nghiêm trọng giai đoạn đầu', value: s / 4, isBold: true },
+            { label: '62 Bệnh lý nghiêm trọng giai đoạn cuối', note: 'Trừ đi quyền lợi giai đoạn đầu đã trả (nếu có)', value: s, isBold: true },
+            { label: '05 Bệnh lý nghiêm trọng giai đoạn cuối theo giới tính', note: 'Ung thư tiền liệt tuyến, tinh hoàn, vú, cổ tử cung, buồng trứng', value: 1.25 * s, isBold: true }
           ]
         });
       }
