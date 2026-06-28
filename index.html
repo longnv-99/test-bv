@@ -1248,7 +1248,8 @@
         }
         case 'R26': {
           const map = { bac: 'r26_bac', vang: 'r26_vang', bachkim: 'r26_bachkim', kimcuong: 'r26_kimcuong', lucbao: 'r26_lucbao' };
-          return PHISPBK[map[rider.tier]][a] || 0;
+          const raw = PHISPBK[map[rider.tier]][a] || 0;
+          return raw * 1000;
         }
       }
       return 0;
