@@ -1654,7 +1654,7 @@
       <div class="riders-list">
           <div class="rider-input-col">
             <div class="rider-input-row">
-                <input class="total-first-year" type="text" inputmode="numeric" id="f-total-first-year" value="0" readonly disabled>
+                <span class="total-first-year" id="f-total-first-year"></span>
             </div>
           </div>
       </div>
@@ -1871,7 +1871,7 @@
       });
 
       const total = phiCoBan + riderTotal;
-      el.value = total > 0 ? fmtMoney(total) : '';
+      el.textContent = total > 0 ? fmtMoney(total) : '';
     }
 
     function validatePage1() {
