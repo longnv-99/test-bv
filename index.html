@@ -69,7 +69,7 @@
       align-items: center;
       justify-content: flex-start;
       z-index: 999;
-      background: url('background_pc.jpg') center center / cover no-repeat;
+      background: url('images/background_pc.jpg') center center / cover no-repeat;
     }
 
     .gate-box {
@@ -87,7 +87,7 @@
 
     @media (max-width: 768px) {
     #gate {
-      background: url('background_sp3.jpg') center center / cover no-repeat;
+      background: url('images/background_sp3.jpg') center center / cover no-repeat;
       justify-content: center;
     }
 
@@ -359,7 +359,8 @@
     }
 
     .field label {
-      display: block;
+      display: inline-flex;
+      align-items: center;
       font-size: 16px;
       color: var(--navy-4);
       margin-bottom: 6px;
@@ -381,6 +382,15 @@
     .field select:focus {
       outline: 2px solid var(--gold-2);
       border-color: var(--gold);
+    }
+
+    .rider-info-icon {
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      vertical-align: middle;
+      display: inline;
+      margin-left: 3px;
     }
 
     .hint {
@@ -583,6 +593,7 @@
     .rider-check-label {
       color: var(--navy-4);
       font-weight: 700;
+      display: block;
     }
 
     .rider-check input {
@@ -1192,7 +1203,7 @@
       <div id="steps"></div>
     </header> -->
     <div class="app-banner">
-      <img src="banner3.jpg" />
+      <img src="images/banner3.jpg" />
     </div>
     <div id="steps"></div>
     <main id="page-root">
@@ -1354,15 +1365,24 @@
       return yearly;
     }
 
+    function downloadRiderPdf(filename, event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const a = document.createElement('a');
+      a.href = filename;
+      a.download = filename;
+      a.click();
+    }
+
 
     // ============ STATE ============
     const RIDER_DEFS = [
-      { type: 'R21', label: 'Bệnh nan y', unit: 'STBH', placeholder: 'VD: 500.000.000' },
-      { type: 'R22', label: 'Thương tật bộ phận vĩnh viễn do tai nạn', unit: 'STBH', placeholder: 'VD: 500.000.000' },
-      { type: 'R23', label: 'Tử vong và thương tật nghiêm trọng do tai nạn', unit: 'STBH', placeholder: 'VD: 500.000.000' },
-      { type: 'R25', label: 'Bệnh lý nghiêm trọng', unit: 'STBH', placeholder: 'VD: 500.000.000' },
-      { type: 'R26', label: 'Chăm sóc sức khỏe toàn diện', unit: 'TIER' },
-      { type: 'R29', label: 'Trợ cấp viện phí', unit: 'STBH', placeholder: 'VD: 500.000' }
+      { type: 'R21', label: 'Bệnh nan y', unit: 'STBH', placeholder: 'VD: 500.000.000',  pdfFile:'documents/R21.pdf' },
+      { type: 'R22', label: 'Thương tật bộ phận vĩnh viễn do tai nạn', unit: 'STBH', placeholder: 'VD: 500.000.000', pdfFile:'documents/R22.pdf' },
+      { type: 'R23', label: 'Tử vong và thương tật nghiêm trọng do tai nạn', unit: 'STBH', placeholder: 'VD: 500.000.000', pdfFile:'documents/R23.pdf' },
+      { type: 'R25', label: 'Bệnh lý nghiêm trọng', unit: 'STBH', placeholder: 'VD: 500.000.000', pdfFile:'documents/R25.pdf' },
+      { type: 'R26', label: 'Chăm sóc sức khỏe toàn diện', unit: 'TIER', pdfFile:'documents/R26.pdf' },
+      { type: 'R29', label: 'Trợ cấp viện phí', unit: 'STBH', placeholder: 'VD: 500.000', pdfFile:'documents/R29.pdf' }
     ];
     const R26_TIERS = [
       { key: 'bac', label: 'Bạc', limit: '150 triệu/năm' },
@@ -1544,7 +1564,7 @@
         <div class="inline-row">
           <label>Họ và tên</label>
           <div class="input-with-icon">
-            <img src="user.svg" alt="" class="input-icon">
+            <img src="images/user.svg" alt="" class="input-icon">
             <input type="text" id="f-name" value="${state.customer.name}" placeholder="Nguyễn Văn A">
           </div>
         </div>
@@ -1553,7 +1573,7 @@
         <div class="inline-row">
           <label>Ngày sinh</label>
           <div class="input-with-icon">
-            <img src="calendar.svg" alt="" class="input-icon">
+            <img src="images/calendar.svg" alt="" class="input-icon">
             <input type="text" inputmode="numeric" id="f-dob" value="${state.customer.dobStr || ''}" placeholder="dd/mm/yyyy" maxlength="10">
           </div>
         </div>
@@ -1564,11 +1584,11 @@
             <label>Giới tính</label>
             <div class="seg">
               <button type="button" class="seg-btn ${state.customer.gender === 'Nam' ? 'active' : ''}" data-g="Nam">
-                <img src="male.svg" class="gender-icon" alt="">
+                <img src="images/male.svg" class="gender-icon" alt="">
                 <span>Nam</span>
               </button>
               <button type="button" class="seg-btn ${state.customer.gender === 'Nu' ? 'active' : ''}" data-g="Nu">
-                <img src="female.svg" class="gender-icon" alt="">
+                <img src="images/female.svg" class="gender-icon" alt="">
                 <span>Nữ</span>
               </button>
             </div>
@@ -1578,7 +1598,7 @@
           <div class="inline-row">
             <label>Nhóm nghề</label>
             <div class="select-with-icon">
-              <img src="briefcase.svg" class="select-icon" alt="">
+              <img src="images/briefcase.svg" class="select-icon" alt="">
               <select id="f-nhom">
                 ${[1, 2, 3, 4, 5, 6].map(n => `<option value="${n}" ${state.customer.nhomNgheNghiep === n ? 'selected' : ''}>${n}</option>`).join('')}
               </select>
@@ -1592,9 +1612,9 @@
     <h2 class="card-title">2. Sản phẩm chính</h2>
     <div class="grid2">
       <div class="field">
-        <label>Phí bảo hiểm cơ bản / năm</label>
+        <label>Phí bảo hiểm cơ bản / năm <img src="images/info.svg" class="rider-info-icon" onclick="downloadRiderPdf('documents/SPC_ATPN.pdf', event)"></label>
         <div class="input-with-icon">
-          <img src="dollar.svg" alt="" class="input-icon">
+          <img src="images/vnd.svg" alt="" class="input-icon">
           <input type="text" inputmode="numeric" id="f-phicoban" value="${state.product.phiCoBan}" placeholder="VD: 30.000.000">
         </div>
         <div class="hint" id="hint-daily-saving">${dailySaving !== null ? `Tiết kiệm: <b>${fmtMoney(dailySaving)} đồng/ngày</b>` : ''}</div>
@@ -1602,7 +1622,7 @@
       <div class="field">
         <label>Phí bảo hiểm đóng thêm / năm</label>
         <div class="input-with-icon">
-          <img src="dollar.svg" alt="" class="input-icon">
+          <img src="images/vnd.svg" alt="" class="input-icon">
           <input type="text" inputmode="numeric" id="f-phidongthem" value="${state.product.phiDongThem}" placeholder="VD: 0">
         </div>
         <div class="hint" id="hint-phidongthem">${limPDT ? `Tối đa: <b>${fmtMoney(limPDT.max)} đ</b>/năm (5 lần phí cơ bản).` : ''}</div>
@@ -1610,7 +1630,7 @@
       <div class="field" style="grid-column:1/-1">
         <label>Số tiền bảo hiểm (Sản phẩm chính)</label>
         <div class="input-with-icon">
-          <img src="dollar.svg" alt="" class="input-icon">
+          <img src="images/vnd.svg" alt="" class="input-icon">
           <input type="text" inputmode="numeric" id="f-stbh" value="${state.product.stbhChinh}" placeholder="VD: 1.000.000.000">
         </div>
         <div class="hint" id="hint-stbh-chinh">${stbhHintHtml(limStbh)}</div>
@@ -1619,7 +1639,7 @@
         <div class="inline-row">
           <label>Thời hạn hợp đồng</label>
           <div class="select-with-icon">
-            <img src="clock.svg" class="select-icon" alt="">
+            <img src="images/clock.svg" class="select-icon" alt="">
             <select id="f-term">
               <option value="20" ${state.product.termMode === '20' ? 'selected' : ''}>20 năm</option>
               <option value="25" ${state.product.termMode === '25' ? 'selected' : ''}>25 năm</option>
@@ -1633,7 +1653,7 @@
         <div class="inline-row">
           <label>Thời hạn đóng phí dự kiến (năm)</label>
           <div class="input-with-icon">
-            <img src="clock.svg" alt="" class="input-icon">
+            <img src="images/clock.svg" alt="" class="input-icon">
             <input type="number" id="f-payyears" min="4" max="${term || 30}" value="${state.product.paymentYears}">
           </div>
         </div>
@@ -1690,12 +1710,12 @@
           <div class="rider-row">
             <label class="rider-check">
               <input type="checkbox" data-rider="${r.type}" class="rider-toggle" ${st.enabled ? 'checked' : ''}>
-              <span class="rider-check-label">${r.type} — ${r.label}</span>
+              <span class="rider-check-label">${r.type} — ${r.label} ${r.pdfFile ? `<img src="images/info.svg" class="rider-info-icon" onclick="downloadRiderPdf('${r.pdfFile}', event)">` : ''}</span>
             </label>
             <div class="rider-input-col">
               <div class="rider-input-row">
                 <div class="select-with-icon">
-                  <img src="dollar.svg" class="select-icon" alt="">
+                  <img src="images/vnd.svg" class="select-icon" alt="">
                   <select class="rider-input" data-rider-tier="${r.type}" ${st.enabled ? '' : 'disabled'}>
                     ${R26_TIERS.map(t => `<option value="${t.key}" ${st.tier === t.key ? 'selected' : ''}>${t.label} (${t.limit})</option>`).join('')}
                   </select>
@@ -1711,12 +1731,12 @@
         <div class="rider-row">
           <label class="rider-check">
             <input type="checkbox" data-rider="${r.type}" class="rider-toggle" ${st.enabled ? 'checked' : ''}>
-            <span class="rider-check-label">${r.type} — ${r.label}</span>
+            <span class="rider-check-label">${r.type} — ${r.label} ${r.pdfFile ? `<img src="images/info.svg" class="rider-info-icon" onclick="downloadRiderPdf('${r.pdfFile}', event)">` : ''}</span>
           </label>
           <div class="rider-input-col">
             <div class="rider-input-row">
               <div class="input-with-icon">
-                <img src="dollar.svg" alt="" class="input-icon">
+                <img src="images/vnd.svg" alt="" class="input-icon">
                 <input type="text" inputmode="numeric" class="rider-input" data-rider-stbh="${r.type}" placeholder="${r.placeholder}" value="${st.stbh}" ${st.enabled ? '' : 'disabled'}>
               </div>
               ${st.enabled ? `<span class="rider-fee" id="fee-rider-${r.type}">${riderFeeHtml(r, st)}</span>` : ''}
@@ -1871,7 +1891,7 @@
       });
 
       const total = phiCoBan + riderTotal;
-      el.textContent = total > 0 ? fmtMoney(total) : '';
+      el.textContent = total > 0 ? '₫ ' + fmtMoney(total) : '';
     }
 
     function validatePage1() {
