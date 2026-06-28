@@ -605,6 +605,16 @@
       flex-wrap: wrap;
     }
 
+    .total-first-year {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 16px;
+      background: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
     .rider-fee {
       font-size: 12.5px;
       color: var(--teal);
@@ -952,6 +962,10 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 14.5px;
+    }
+
+    .benefit-table .label-bold{
+      font-weight: 700;
     }
 
     .benefit-table td {
@@ -1614,6 +1628,22 @@
     </div>
   </div>
 
+  <div class="card">
+    <h2 class="card-title">Tổng chi phí bảo hiểm năm 1</h2>
+      <div class="riders-list">
+          <div class="rider-row">
+            <div class="rider-input-col">
+              <div class="rider-input-row">
+                  <div class="input-with-icon">
+                    <img src="dollar.svg" alt="" class="input-icon">
+                    <input class="total-first-year" type="text" inputmode="numeric" id="f-total-first-year" value="" readonly>
+                  </div>
+              </div>
+            </div>
+          </div>
+      </div>
+  </div>
+
   <div class="actions">
     <button class="btn btn-primary" id="btn-go-page2">Xem bảng minh họa →</button>
   </div>
@@ -1765,6 +1795,8 @@
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', () => el.classList.remove('input-error'));
       });
+
+      updateTotalFirstYear();
     }
 
     function refreshHints() {
@@ -1805,6 +1837,22 @@
         const feeEl = document.getElementById('fee-rider-' + r.type);
         if (feeEl) feeEl.innerHTML = riderFeeHtml(r, st);
       });
+
+      updateTotalFirstYear();
+    }
+
+    function updateTotalFirstYear() {
+      const el = document.getElementById('f-total-first-year');
+      if (!el) return;
+      const phiCoBan = parseNum(state.product.phiCoBan) || 0;
+      const riderTypes = ['R21', 'R22', 'R23', 'R25', 'R26', 'R29'];
+      let riderTotal = 0;
+      riderTypes.forEach(type => {
+        const r = state.riders[type];
+        if (r && r.enabled) riderTotal += parseNum(r.stbh) || 0;
+      });
+      const total = phiCoBan + riderTotal;
+      el.value = total > 0 ? fmtMoney(total) : '';
     }
 
     function validatePage1() {
@@ -1819,7 +1867,7 @@
       else if (parseNum(state.product.stbhChinh) > 1400000000) { errs.push('Số tiền bảo hiểm không vượt quá 1 tỉ 400 triệu đồng.'); fieldErrors.stbh = true; }
 
       if (!parseNum(state.product.phiCoBan)) { errs.push('Vui lòng nhập Phí bảo hiểm cơ bản.'); fieldErrors.phicoban = true; }
-      else if (parseNum(state.product.phiCoBan) < 100000000) { errs.push('Phí bảo hiểm cơ bản tối thiểu 100 triệu đồng.'); fieldErrors.phicoban = true; }
+      else if (parseNum(state.product.phiCoBan) < 6000000) { errs.push('Phí bảo hiểm cơ bản tối thiểu 100 triệu đồng.'); fieldErrors.phicoban = true; }
       else if (parseNum(state.product.phiCoBan) > 1400000000) { errs.push('Phí bảo hiểm cơ bản không vượt quá 1 tỉ 400 triệu đồng.'); fieldErrors.phicoban = true; }
 
       if (state.product.paymentYears < 4) { errs.push('Thời hạn đóng phí dự kiến tối thiểu 4 năm.'); fieldErrors.payyears = true; }
@@ -1925,7 +1973,7 @@
       <thead><tr>
         <th class="sticky">Năm HĐ / Tuổi</th>
         <th>Tổng phí BH lũy kế</th>
-        <th>Thưởng duy trì HĐ &amp; hoàn phí rủi ro</th>
+        <th>Thưởng duy trì &amp; hoàn phí rủi ro</th>
         <th>Giá trị tài khoản HĐ</th>
       </tr></thead>
       <tbody>
@@ -1979,20 +2027,20 @@
       const i = R26_TIER_IDX[tier];
       const pick = arr => arr[i];
       return [
-        { label: 'Giới hạn bảo hiểm tối đa Quyền lợi Điều trị Nội trú', text: pick(['150 triệu/năm', '250 triệu/năm', '500 triệu/năm', '1 tỷ/năm', '2 tỷ/năm']) },
-        { label: 'Điều trị nội trú có phẫu thuật', note: 'Mỗi đợt điều trị', text: pick(['60 triệu', '120 triệu', '250 triệu', '400 triệu', '800 triệu']) },
-        { label: 'Điều trị nội trú không phẫu thuật', note: 'Mỗi đợt điều trị', text: pick(['30 triệu', '60 triệu', '125 triệu', '200 triệu', '400 triệu']) },
-        { label: 'Chi phí Phòng và Giường', note: 'Tối đa 60 ngày/năm', text: pick(['750 nghìn/ngày', '1,25 triệu/ngày', '2,5 triệu/ngày', '5 triệu/ngày', '10 triệu/ngày']) },
-        { label: 'Chi phí Phòng và Giường tại Khoa Hồi sức tích cực (ICU)', note: 'Tối đa 30 ngày/năm', text: 'Chi phí y tế thực tế' },
-        { label: 'Chi phí Phẫu thuật', text: 'Chi phí y tế thực tế' },
-        { label: 'Điều trị ung thư, cấy ghép nội tạng', text: 'Chi phí y tế thực tế' },
-        { label: 'Chi phí điều trị trước/sau nhập viện, chi phí y tế nội trú khác', text: 'Chi phí y tế thực tế' },
-        { label: 'Chi phí Giường dành cho người chăm sóc', note: 'Áp dụng khi NĐBH dưới 18 tuổi, tối đa 30 ngày/năm', text: pick(['300 nghìn/ngày', '500 nghìn/ngày', '700 nghìn/ngày', '1 triệu/ngày', '2 triệu/ngày']) },
-        { label: 'Chi phí điều trị nội trú tổn thương răng do tai nạn', note: 'Mỗi năm', text: pick(['1,5 triệu', '2 triệu', '4 triệu', '6 triệu', '8 triệu']) },
-        { label: 'Chi phí chạy thận nhân tạo định kỳ trong ngày', note: 'Mỗi năm', text: pick(['3 triệu', '7 triệu', '12 triệu', '15 triệu', '30 triệu']) },
-        { label: 'Chi phí vận chuyển cấp cứu trong ngày', note: 'Mỗi năm', text: pick(['1,5 triệu', '2 triệu', '4 triệu', '6 triệu', '8 triệu']) },
-        { label: 'Chi phí điều trị trong ngày', note: 'Cấp cứu, nha khoa do tai nạn; sốt xuất huyết, cúm, viêm phổi, viêm phế quản', text: pick(['4 triệu', '6 triệu', '12 triệu', '20 triệu', '30 triệu']) },
-        { label: 'Chi phí phẫu thuật trong ngày', text: pick(['15 triệu/ngày', '30 triệu/ngày', '60 triệu/ngày', '100 triệu/ngày', '200 triệu/ngày']) }
+        { label: 'Giới hạn bảo hiểm tối đa Quyền lợi Điều trị Nội trú', text: pick(['150 triệu/năm', '250 triệu/năm', '500 triệu/năm', '1 tỷ/năm', '2 tỷ/năm']), isBold: true },
+        { label: 'Điều trị nội trú có phẫu thuật', note: 'Mỗi đợt điều trị', text: pick(['60 triệu', '120 triệu', '250 triệu', '400 triệu', '800 triệu']), isBold: true},
+        { label: 'Điều trị nội trú không phẫu thuật', note: 'Mỗi đợt điều trị', text: pick(['30 triệu', '60 triệu', '125 triệu', '200 triệu', '400 triệu']), isBold: true },
+        { label: 'Chi phí Phòng và Giường', note: 'Tối đa 60 ngày/năm', text: pick(['750 nghìn/ngày', '1,25 triệu/ngày', '2,5 triệu/ngày', '5 triệu/ngày', '10 triệu/ngày']), isBold: true },
+        { label: 'Chi phí Phòng và Giường tại Khoa Hồi sức tích cực (ICU)', note: 'Tối đa 30 ngày/năm', text: 'Chi phí y tế thực tế', isBold: true },
+        { label: 'Chi phí Phẫu thuật', text: 'Chi phí y tế thực tế', isBold: true },
+        { label: 'Điều trị ung thư, cấy ghép nội tạng', text: 'Chi phí y tế thực tế', isBold: true },
+        { label: 'Chi phí điều trị trước/sau nhập viện, chi phí y tế nội trú khác', text: 'Chi phí y tế thực tế', isBold: true },
+        { label: 'Chi phí Giường dành cho người chăm sóc', note: 'Áp dụng khi NĐBH dưới 18 tuổi, tối đa 30 ngày/năm', text: pick(['300 nghìn/ngày', '500 nghìn/ngày', '700 nghìn/ngày', '1 triệu/ngày', '2 triệu/ngày']), isBold: true },
+        { label: 'Chi phí điều trị nội trú tổn thương răng do tai nạn', note: 'Mỗi năm', text: pick(['1,5 triệu', '2 triệu', '4 triệu', '6 triệu', '8 triệu']), isBold: true },
+        { label: 'Chi phí chạy thận nhân tạo định kỳ trong ngày', note: 'Mỗi năm', text: pick(['3 triệu', '7 triệu', '12 triệu', '15 triệu', '30 triệu']), isBold: true },
+        { label: 'Chi phí vận chuyển cấp cứu trong ngày', note: 'Mỗi năm', text: pick(['1,5 triệu', '2 triệu', '4 triệu', '6 triệu', '8 triệu']), isBold: true },
+        { label: 'Chi phí điều trị trong ngày', note: 'Cấp cứu, nha khoa do tai nạn; sốt xuất huyết, cúm, viêm phổi, viêm phế quản', text: pick(['4 triệu', '6 triệu', '12 triệu', '20 triệu', '30 triệu']), isBold: true },
+        { label: 'Chi phí phẫu thuật trong ngày', text: pick(['15 triệu/ngày', '30 triệu/ngày', '60 triệu/ngày', '100 triệu/ngày', '200 triệu/ngày']), isBold: true }
       ];
     }
 
@@ -2013,11 +2061,11 @@
         const s = byType.R29.stbh;
         sections.push({
           title: 'TRỢ CẤP VIỆN PHÍ (R29)', rows: [
-            { label: 'Nằm viện cơ bản', note: 'Tối đa 3 lần/năm, 50 ngày/năm', value: s },
-            { label: 'Nằm viện đặc biệt (ICU)', note: 'Tối đa 30 ngày/năm, 300 ngày toàn hợp đồng', value: s * 2 },
-            { label: 'Phẫu thuật cơ bản', note: 'Tối đa 2 lần/năm, 10 lần toàn hợp đồng', value: s * 5 },
-            { label: 'Phẫu thuật đặc biệt', value: s * 10 },
-            { label: 'Vận chuyển cấp cứu', note: 'Tối đa 1 triệu đồng/lần, 2 lần/năm', value: Math.min(s * 2, 1000000) }
+            { label: 'Nằm viện cơ bản', note: 'Tối đa 3 lần/năm, 50 ngày/năm', value: s, isBold: true },
+            { label: 'Nằm viện đặc biệt (ICU)', note: 'Tối đa 30 ngày/năm, 300 ngày toàn hợp đồng', value: s * 2, isBold: true },
+            { label: 'Phẫu thuật cơ bản', note: 'Tối đa 2 lần/năm, 10 lần toàn hợp đồng', value: s * 5, isBold: true },
+            { label: 'Phẫu thuật đặc biệt', value: s * 10, isBold: true },
+            { label: 'Vận chuyển cấp cứu', note: 'Tối đa 1 triệu đồng/lần, 2 lần/năm', value: Math.min(s * 2, 1000000), isBold: true }
           ]
         });
       }
@@ -2025,8 +2073,8 @@
         const s = byType.R21.stbh;
         sections.push({
           title: 'BỆNH NAN Y (R21)', rows: [
-            { label: 'Ung thư giai đoạn đầu', value: s / 4 },
-            { label: 'Ung thư giai đoạn cuối / Đột quỵ / Nhồi máu cơ tim', note: 'Trừ đi quyền lợi giai đoạn đầu đã trả (nếu có)', value: s }
+            { label: 'Ung thư giai đoạn đầu', value: s / 4, isBold: true },
+            { label: 'Ung thư giai đoạn cuối / Đột quỵ / Nhồi máu cơ tim', note: 'Trừ đi quyền lợi giai đoạn đầu đã trả (nếu có)', value: s, isBold: true }
           ]
         });
       }
@@ -2057,16 +2105,16 @@
 
       sections.push({
         title: 'TỬ VONG', rows: [
-          { label: 'Không do tai nạn', value: stbhChinh },
-          { label: 'Tai nạn thông thường', note: 'Điện giật, đuối nước, tai nạn giao thông/lao động/sinh hoạt...', value: stbhChinh + stbhR23 },
-          { label: 'Tai nạn máy bay', value: stbhChinh + 2 * stbhR23 }
+          { label: 'Không do tai nạn', value: stbhChinh, isBold: true },
+          { label: 'Tai nạn thông thường', note: 'Điện giật, đuối nước, tai nạn giao thông/lao động/sinh hoạt...', value: stbhChinh + stbhR23, isBold: true },
+          { label: 'Tai nạn máy bay', value: stbhChinh + 2 * stbhR23, isBold: true }
         ]
       });
 
       const r476 = state.results['476'];
       const gttkRows = [];
       [10, 15, 20].forEach(y => {
-        if (r476.length >= y) gttkRows.push({ label: `Tại năm hợp đồng số ${y}`, value: r476[y - 1].GTTKHD });
+        if (r476.length >= y) gttkRows.push({ label: `Tại năm hợp đồng số ${y}`, value: r476[y - 1].GTTKHD, isBold: true });
       });
       if (gttkRows.length) {
         sections.push({ title: 'GIÁ TRỊ TÀI KHOẢN HỢP ĐỒNG', note: 'Lãi suất minh họa 4,76%/năm', rows: gttkRows });
@@ -2080,7 +2128,7 @@
     <div class="benefit-section-title">${sec.title}${sec.note ? `<span class="note" style="display:block;font-weight:400;margin-top:2px">${sec.note}</span>` : ''}</div>
     <table class="benefit-table"><tbody>
       ${sec.rows.map(r => `<tr>
-        <td>${r.label}${r.note ? `<span class="note">${r.note}</span>` : ''}</td>
+        <td class="${r.isBold ? 'label-bold' : ''}">${r.label}${r.note ? `<span class="note">${r.note}</span>` : ''}</td>
         <td>${r.text ? r.text : fmtMoney(r.value) + ' đ'}</td>
       </tr>`).join('')}
     </tbody></table>
