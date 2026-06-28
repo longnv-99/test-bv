@@ -64,31 +64,49 @@
     #gate {
       position: fixed;
       inset: 0;
-      background: var(--navy);
+      /* background: var(--navy); */
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       z-index: 999;
+      background: url('background_pc.jpg') center center / cover no-repeat;
     }
 
     .gate-box {
-      background: var(--paper);
-      border-radius: var(--radius);
-      padding: 36px 32px;
-      width: 320px;
-      box-shadow: var(--shadow);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 72px 32px;
+      max-width: 460px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       text-align: center;
+      margin-left: 10%;
+      box-shadow: 0 8px 32px rgba(100, 180, 230, 1);
     }
 
+    @media (max-width: 768px) {
+    #gate {
+      background: url('background_sp3.jpg') center center / cover no-repeat;
+      justify-content: center;
+    }
+
+    .gate-box {
+      width: 85%;
+      margin-left: 0;
+      padding: 30px 32px;
+    }
+  }
+
     .gate-box h1 {
-      font-size: 22px;
-      color: var(--navy);
+      font-size: 25px;
+      color: white;
       margin-bottom: 6px;
     }
 
     .gate-box p {
-      color: var(--slate);
-      font-size: 13px;
+      color: white;
+      font-size: 16px;
       margin: 0 0 20px;
     }
 
@@ -108,7 +126,7 @@
       padding: 12px;
       border: none;
       border-radius: 8px;
-      background: var(--gold);
+      background: var(--gold-3);
       color: #fff;
       font-weight: 600;
       font-size: 15px;
@@ -1156,7 +1174,7 @@
   <div id="gate">
     <div class="gate-box">
       <h1>An Thịnh Phúc Niên</h1>
-      <p>Công cụ minh họa nội bộ — vui lòng nhập mã truy cập</p>
+      <p>Công cụ minh họa nội bộ</p>
       <input type="password" id="gate-pass" placeholder="Mã truy cập" autocomplete="off">
       <button type="button" id="gate-submit">Vào công cụ</button>
       <div class="gate-error" id="gate-error">Mã truy cập không đúng, vui lòng thử lại.</div>
@@ -1477,7 +1495,7 @@
       if (!btn || !passEl) { console.error('Gate elements not found'); return; }
       const tryUnlock = () => {
         const val = (passEl.value || '').trim();
-        if (val === '30nam') {
+        if (val === '30') {
           safeStorageSet('atpn_unlocked', 'yes');
           gate.style.display = 'none';
           app.style.display = 'block';
