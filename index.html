@@ -1871,7 +1871,7 @@
       else if (parseNum(state.product.stbhChinh) > 1400000000) { errs.push('Số tiền bảo hiểm không vượt quá 1 tỉ 400 triệu đồng.'); fieldErrors.stbh = true; }
 
       if (!parseNum(state.product.phiCoBan)) { errs.push('Vui lòng nhập Phí bảo hiểm cơ bản.'); fieldErrors.phicoban = true; }
-      else if (parseNum(state.product.phiCoBan) < 6000000) { errs.push('Phí bảo hiểm cơ bản tối thiểu 100 triệu đồng.'); fieldErrors.phicoban = true; }
+      else if (parseNum(state.product.phiCoBan) < 6000000) { errs.push('Phí bảo hiểm cơ bản tối thiểu 6 triệu đồng.'); fieldErrors.phicoban = true; }
       else if (parseNum(state.product.phiCoBan) > 1400000000) { errs.push('Phí bảo hiểm cơ bản không vượt quá 1 tỉ 400 triệu đồng.'); fieldErrors.phicoban = true; }
 
       if (state.product.paymentYears < 4) { errs.push('Thời hạn đóng phí dự kiến tối thiểu 4 năm.'); fieldErrors.payyears = true; }
