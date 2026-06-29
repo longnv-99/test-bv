@@ -1368,10 +1368,7 @@
     function downloadRiderPdf(filename, event) {
       event.preventDefault();
       event.stopPropagation();
-      const a = document.createElement('a');
-      a.href = filename;
-      a.download = filename;
-      a.click();
+      window.open(filename, '_blank', 'noopener,noreferrer');
     }
 
 
