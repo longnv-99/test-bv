@@ -1891,6 +1891,7 @@
       const el = document.getElementById('f-total-first-year');
       if (!el) return;
       const phiCoBan = parseNum(state.product.phiCoBan) || 0;
+      const phiDongThem = parseNum(state.product.phiDongThem) || 0;
       const riderTypes = ['R21', 'R22', 'R23', 'R25', 'R26', 'R29'];
       let riderTotal = 0;
       riderTypes.forEach(type => {
@@ -1900,7 +1901,7 @@
         riderTotal += riderPremiumForAge(riderInput, state.customer.age, state.customer.gender, state.customer.nhomNgheNghiep);
       });
 
-      const total = phiCoBan + riderTotal;
+      const total = phiCoBan + phiDongThem + riderTotal;
       el.textContent = total > 0 ? '₫ ' + fmtMoney(total) : '';
     }
 
