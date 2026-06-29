@@ -12,7 +12,7 @@
   <meta name="description" content="Công cụ minh họa An Thịnh Phúc Niên">
   <meta property="og:title" content="Công cụ minh họa An Thịnh Phúc Niên">
   <meta property="og:description" content="Công cụ minh họa bảo hiểm">
-  <meta property="og:image" content="images/og_image.jpg">
+  <meta property="og:image" content="https://bvnt.me/images/og_image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:url" content="https://bvnt.me">
@@ -1166,7 +1166,7 @@
 
   .rate-toggle { width: 100%; }
 
-  .rate-btn { flex: 0 0 calc(50% - 3px); }
+  .rate-btn { flex: 1; }
 
   .view-toggle { flex-wrap: wrap; }
 
@@ -1184,13 +1184,16 @@
   .benefit-table td { padding: 8px; }
 }
 
-
 @media (max-width: 768px){
   .grid2,
   .grid-2,
   .row-2{
     grid-template-columns: 1fr !important;
   }
+}
+
+@media (max-width: 360px){
+  .rate-btn { flex: 0 0 calc(50% - 3px); }
 }
 
 </style>
