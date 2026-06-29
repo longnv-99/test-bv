@@ -4,7 +4,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Công cụ minh họa An Thịnh Phúc Niên — Nội bộ</title>
+  
+  <title>Công cụ minh họa An Thịnh Phúc Niên</title>
+
+  <link rel="icon" type="image/svg+xml" href="images/logo-small.png">
+
+  <meta name="description" content="Công cụ minh họa An Thịnh Phúc Niên">
+  <meta property="og:title" content="Công cụ minh họa An Thịnh Phúc Niên">
+  <meta property="og:description" content="Công cụ minh họa bảo hiểm">
+  <meta property="og:image" content="images/og_image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://bvnt.me">
+  <meta property="og:type" content="website">
+
   <style>
     :root {
       --navy: #102A43;
@@ -1368,10 +1381,7 @@
     function downloadRiderPdf(filename, event) {
       event.preventDefault();
       event.stopPropagation();
-      const a = document.createElement('a');
-      a.href = filename;
-      a.download = filename;
-      a.click();
+      window.open(filename, '_blank', 'noopener,noreferrer');
     }
 
 
@@ -1881,6 +1891,7 @@
       const el = document.getElementById('f-total-first-year');
       if (!el) return;
       const phiCoBan = parseNum(state.product.phiCoBan) || 0;
+      const phiDongThem = parseNum(state.product.phiDongThem) || 0;
       const riderTypes = ['R21', 'R22', 'R23', 'R25', 'R26', 'R29'];
       let riderTotal = 0;
       riderTypes.forEach(type => {
@@ -1890,7 +1901,7 @@
         riderTotal += riderPremiumForAge(riderInput, state.customer.age, state.customer.gender, state.customer.nhomNgheNghiep);
       });
 
-      const total = phiCoBan + riderTotal;
+      const total = phiCoBan + phiDongThem + riderTotal;
       el.textContent = total > 0 ? '₫ ' + fmtMoney(total) : '';
     }
 
