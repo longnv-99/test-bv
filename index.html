@@ -1035,6 +1035,12 @@
       background: #FBF9F2;
     }
 
+    .benefit-section-title .note {
+      font-size: 14.5px;
+      font-weight: 400;
+      color: var(--slate);
+    }
+
     .benefit-table .note {
       font-size: 11.5px;
       color: var(--slate);
@@ -1250,6 +1256,14 @@
       if (n >= 4 && n <= 10) return 0.01;
       return 0.005;
     }
+    // Tỷ lệ lãi suất cam kết gia tăng (Lãi gia tăng đầu tư) theo PDF — chỉ áp dụng khi rateMode='min'
+    function bonusInterestRate(n) {
+      if (n === 1) return 0.02;
+      if (n >= 2 && n <= 3) return 0.015;
+      if (n >= 4 && n <= 15) return 0.01;
+      if (n >= 16 && n <= 20) return 0.0025;
+      return 0;
+    }
     function duyTriRate(n) { if (n === 5) return 0.02; if (n === 10) return 0.04; if (n === 15) return 0.06; return 0.08; }
     function addMonths(d, n) { const r = new Date(d); r.setMonth(r.getMonth() + n); return r; }
     function annualRateForYear(mode, n) {
@@ -1308,6 +1322,7 @@
       let curDate = new Date(inputs.startDate);
       let Jprev = 0;
       let L = 0, M = 0, N = 0;
+      let bonusAccum = 0; // Lãi gia tăng đầu tư tích lũy — chỉ áp dụng khi rateMode='min', chỉ cộng vào GTTK Cơ bản
       const Jhist = [], Hhist = [];
       const yearly = [];
       let cumSPC = 0, cumSPBK = 0;
@@ -1351,10 +1366,15 @@
             newHoanPhi = 1.0 * Hhist.slice(60, 120).reduce((a, b) => a + b, 0);
           }
         }
-        L = L * (1 + annualRate) + newDuyTri;
-        N = N * (1 + annualRate) + newHoanPhi;
+        const effRateForBonusPool = rateMode === 'min' ? (annualRate + bonusInterestRate(n)) : annualRate;
+        L = L * (1 + effRateForBonusPool) + newDuyTri;
+        N = N * (1 + effRateForBonusPool) + newHoanPhi;
 
-        const GTTKCoBan = Math.max(Jprev, 0);
+        const GTTKCoBanBase = Math.max(Jprev, 0);
+        if (rateMode === 'min') {
+          bonusAccum = bonusAccum * (1 + annualRate) + GTTKCoBanBase * bonusInterestRate(n);
+        }
+        const GTTKCoBan = GTTKCoBanBase + bonusAccum;
         const GTTKDongThem = L + M + N;
         const GTTKHD = GTTKCoBan + GTTKDongThem;
         const QLBHTuVong = Math.max(GTTKCoBan, inputs.stbhChinh) + GTTKDongThem;
@@ -2158,9 +2178,10 @@
 
       sections.push({
         title: 'TỬ VONG', rows: [
+          { label: 'Chu toàn hậu sự', value: Math.min(0.10 * stbhChinh, 30000000), isBold: true },
           { label: 'Không do tai nạn', value: stbhChinh, isBold: true },
-          { label: 'Tai nạn thông thường', note: 'Điện giật, đuối nước, tai nạn giao thông/lao động/sinh hoạt...', value: stbhChinh + stbhR23, isBold: true },
-          { label: 'Tai nạn máy bay', value: stbhChinh + 2 * stbhR23, isBold: true }
+          { label: 'Do tai nạn thông thường', note: 'Điện giật, đuối nước, tai nạn giao thông/lao động/sinh hoạt...', value: stbhChinh + stbhR23, isBold: true },
+          { label: 'Do tai nạn máy bay', value: stbhChinh + 2 * stbhR23, isBold: true }
         ]
       });
 
