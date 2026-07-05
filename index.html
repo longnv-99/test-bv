@@ -1203,6 +1203,8 @@
 }
 
 </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
@@ -2224,10 +2226,13 @@
   </div>
   <div class="actions">
     <button class="btn btn-secondary" id="btn-back-2">← Quay lại bảng minh họa</button>
+    <button class="btn btn-secondary" id="btn-export-pdf" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">Xuất tóm tắt<img src="images/file_download.svg" alt="" style="width:16px;height:16px;" /></button>
     <button class="btn btn-primary" id="btn-restart">Tạo minh họa mới</button>
   </div>
   `;
       document.getElementById('btn-back-2').addEventListener('click', () => { state.page = 2; renderAll(); });
+      const exportBtn = document.getElementById('btn-export-pdf');
+      exportBtn.addEventListener('click', (e) => exportPage3ToPdf(exportBtn, e));
       const restartBtn = document.getElementById('btn-restart');
       let restartArmed = false;
       restartBtn.addEventListener('click', () => {
@@ -2240,6 +2245,116 @@
         }
         location.reload();
       });
+    }
+
+    // ============ EXPORT PAGE3 TO PDF ============
+    async function exportPage3ToPdf(triggerBtn, event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const card = document.querySelector('#page-root .card');
+      if (!card) return;
+
+      const originalHTML = triggerBtn.innerHTML;
+      triggerBtn.disabled = true;
+      triggerBtn.textContent = 'Đang xuất PDF...';
+
+      try {
+        const RENDER_SCALE = 3; // tăng scale để ảnh nét hơn khi bị co dãn vào khổ A4
+        const canvas = await html2canvas(card, {
+          scale: RENDER_SCALE,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        });
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        const imgWidth = pageWidth;
+        const pxPerMm = canvas.width / imgWidth;      // tỉ lệ pixel canvas / mm
+        const TOP_MARGIN_MM = 20; // khoảng cách top đồng nhất cho mọi trang (đã tăng gấp đôi)
+        const usablePageHeightMm = pageHeight - TOP_MARGIN_MM;
+        const pageHeightPx = Math.floor(usablePageHeightMm * pxPerMm); // chiều cao nội dung dùng được / trang, tính theo pixel canvas
+
+        // Xác định các điểm cắt "an toàn" dựa trên cấu trúc DOM thực tế: ưu tiên
+        // cắt tại ranh giới đầu mỗi mục (.benefit-section, tương ứng mỗi "Rxx"),
+        // nhưng nếu 1 mục dài hơn 1 trang thì vẫn có thể cắt giữa 2 dòng (<tr>)
+        // liền kề trong bảng — không bao giờ cắt ngang giữa nội dung 1 dòng.
+        const cardRect = card.getBoundingClientRect();
+        const sectionEls = card.querySelectorAll('.benefit-section, .disclaimer-box, .benefit-table tr');
+        const breakPoints = [0];
+        sectionEls.forEach(sec => {
+          const rect = sec.getBoundingClientRect();
+          const topPx = Math.round((rect.top - cardRect.top) * RENDER_SCALE);
+          if (topPx > 0 && topPx < canvas.height) breakPoints.push(topPx);
+        });
+        breakPoints.push(canvas.height);
+        // Loại trùng lặp + sắp xếp tăng dần
+        const sortedBreaks = [...new Set(breakPoints)].sort((a, b) => a - b);
+
+        // Tìm điểm cắt (đầu 1 mục) gần "idealY" nhất mà không vượt quá idealY,
+        // và phải lớn hơn sliceStart để đảm bảo có tiến triển.
+        function findSectionBreak(idealY, sliceStart) {
+          let chosen = null;
+          for (const bp of sortedBreaks) {
+            if (bp > sliceStart && bp <= idealY) chosen = bp;
+            if (bp > idealY) break;
+          }
+          return chosen; // null nếu không có mục nào vừa vặn (mục đó dài hơn 1 trang)
+        }
+
+        let sliceStart = 0;
+        let isFirstPage = true;
+        while (sliceStart < canvas.height) {
+          const idealEnd = Math.min(sliceStart + pageHeightPx, canvas.height);
+          let sliceEnd = idealEnd;
+          if (idealEnd < canvas.height) {
+            const safeBreak = findSectionBreak(idealEnd, sliceStart);
+            if (safeBreak) sliceEnd = safeBreak;
+            // Nếu không tìm được (1 mục dài hơn 1 trang), đành cắt cứng tại idealEnd
+          }
+
+          const sliceHeightPx = sliceEnd - sliceStart;
+          const sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = sliceHeightPx;
+          sliceCanvas.getContext('2d').drawImage(
+            canvas, 0, sliceStart, canvas.width, sliceHeightPx,
+            0, 0, canvas.width, sliceHeightPx
+          );
+
+          const sliceImgData = sliceCanvas.toDataURL('image/png');
+          const sliceHeightMm = sliceHeightPx / pxPerMm;
+
+          if (!isFirstPage) pdf.addPage();
+          pdf.addImage(sliceImgData, 'PNG', 0, TOP_MARGIN_MM, imgWidth, sliceHeightMm);
+          isFirstPage = false;
+
+          sliceStart = sliceEnd;
+        }
+
+        const customerName = (state.customer && state.customer.name) ? state.customer.name.trim() : '';
+        const fileName = customerName ? `Tom-tat-quyen-loi_${customerName}.pdf` : 'Tom-tat-quyen-loi.pdf';
+
+        const blob = pdf.output('blob');
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      } catch (e) {
+        console.error(e);
+        alert('Có lỗi khi xuất PDF: ' + e.message);
+      } finally {
+        triggerBtn.disabled = false;
+        triggerBtn.innerHTML = originalHTML;
+      }
     }
 
     // ============ MAIN RENDER DISPATCH ============
