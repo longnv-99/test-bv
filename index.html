@@ -2300,7 +2300,7 @@
     function drawMainSectionBar(ctx, x, y, w, text, h) {
       ctx.fillStyle = EXP.navyDeep;
       ctx.fillRect(x, y, w, h);
-      ctx.font = '700 14px "Segoe UI", Arial, sans-serif';
+      ctx.font = '700 17px "Segoe UI", Arial, sans-serif';
       ctx.fillStyle = EXP.bronze;
       ctx.textBaseline = 'middle';
       ctx.fillText(text, x + 16, y + h / 2 + 1);
@@ -2340,21 +2340,21 @@
         ctx.fillText('MINH HỌA QUYỀN LỢI', PAD, 44);
         y = 68;
       }
-      y += 14;
+      y += 8;
 
       // ---- Mục 1: Thông tin khách hàng ----
-      const bar1H = drawMainSectionBar(ctx, PAD, y, CW, '1. THÔNG TIN KHÁCH HÀNG', 30);
-      y += bar1H + 14;
+      const bar1H = drawMainSectionBar(ctx, PAD, y, CW, '1. THÔNG TIN KHÁCH HÀNG', 34);
+      y += bar1H + 10;
 
       const colW = CW / 2;
       const infoRows = [
         ['Họ và tên', model.name, 'Phí cơ bản/năm', fmtMoney(model.phiCoBan) + ' đ'],
         ['Tuổi NĐBH', model.age + ' tuổi', 'Tổng phí BH năm 1', fmtMoney(model.tongPhiNam1) + ' đ'],
-        ['Giới tính', model.gender, 'Thời hạn HĐ', model.term + ' năm'],
+        ['Giới tính', model.gender, 'Thời hạn hợp đồng', model.term + ' năm'],
         ['Nhóm nghề', 'Nhóm ' + model.nhom, 'Thời hạn đóng phí', model.paymentYears + ' năm']
       ];
       // Đo bề rộng nhãn dài nhất mỗi cột để giá trị luôn thẳng hàng theo cột
-      ctx.font = '400 12px "Segoe UI", Arial, sans-serif';
+      ctx.font = '400 15.5px "Segoe UI", Arial, sans-serif';
       const leftLabelW = Math.max(...infoRows.map(r => ctx.measureText(r[0] + ':').width));
       const rightLabelW = Math.max(...infoRows.map(r => ctx.measureText(r[2] + ':').width));
       const valueX1 = PAD + leftLabelW + 10;
@@ -2363,82 +2363,82 @@
       const rowH = 24;
       infoRows.forEach((row, i) => {
         const ry = y + i * rowH;
-        ctx.font = '400 12px "Segoe UI", Arial, sans-serif';
-        ctx.fillStyle = EXP.slate;
-        ctx.fillText(row[0] + ':', PAD, ry + 16);
-        ctx.fillText(row[2] + ':', PAD + colW, ry + 16);
-        ctx.font = '700 13px "Segoe UI", Arial, sans-serif';
+        ctx.font = '400 15.5px "Segoe UI", Arial, sans-serif';
+        ctx.fillStyle = EXP.ink;
+        ctx.fillText(row[0] + ':', PAD, ry + 17);
+        ctx.fillText(row[2] + ':', PAD + colW, ry + 17);
+        ctx.font = '700 16px "Segoe UI", Arial, sans-serif';
         ctx.fillStyle = EXP.navy;
-        ctx.fillText(row[1], valueX1, ry + 16);
-        ctx.fillText(row[3], valueX2, ry + 16);
+        ctx.fillText(row[1], valueX1, ry + 17);
+        ctx.fillText(row[3], valueX2, ry + 17);
         if (i < infoRows.length - 1) {
           ctx.strokeStyle = EXP.line;
           ctx.beginPath(); ctx.moveTo(PAD, ry + rowH); ctx.lineTo(W - PAD, ry + rowH); ctx.stroke();
         }
       });
-      y += infoRows.length * rowH + 20;
+      y += infoRows.length * rowH + 10;
 
       // ---- Mục 2: Tóm tắt quyền lợi bảo hiểm ----
-      const bar2H = drawMainSectionBar(ctx, PAD, y, CW, '2. TÓM TẮT QUYỀN LỢI BẢO HIỂM', 30);
-      y += bar2H + 12;
+      const bar2H = drawMainSectionBar(ctx, PAD, y, CW, '2. TÓM TẮT QUYỀN LỢI BẢO HIỂM', 34);
+      y += bar2H + 8;
 
       model.sections.forEach(sec => {
         // Header phụ
-        const secHeaderH = sec.note ? 34 : 22;
+        const secHeaderH = sec.note ? 36 : 26;
         ctx.fillStyle = EXP.sectionBg;
         ctx.fillRect(PAD, y, CW, secHeaderH);
         ctx.fillStyle = EXP.goldBar;
         ctx.fillRect(PAD, y, 3, secHeaderH);
         ctx.textBaseline = 'middle';
-        ctx.font = '700 12px "Segoe UI", Arial, sans-serif';
+        ctx.font = '700 15px "Segoe UI", Arial, sans-serif';
         ctx.fillStyle = EXP.navyDeep;
         if (sec.note) {
-          ctx.fillText(sec.title, PAD + 14, y + secHeaderH / 2 - 7);
-          ctx.font = 'italic 400 10px "Segoe UI", Arial, sans-serif';
+          ctx.fillText(sec.title, PAD + 14, y + secHeaderH / 2 - 8);
+          ctx.font = 'italic 400 12px "Segoe UI", Arial, sans-serif';
           ctx.fillStyle = EXP.slate;
-          ctx.fillText(sec.note, PAD + 14, y + secHeaderH / 2 + 8);
+          ctx.fillText(sec.note, PAD + 14, y + secHeaderH / 2 + 9);
         } else {
           ctx.fillText(sec.title, PAD + 14, y + secHeaderH / 2 + 1);
         }
         ctx.textBaseline = 'alphabetic';
-        y += secHeaderH + 7;
+        y += secHeaderH + 4;
 
         sec.rows.forEach(r => {
           const labelWeight = r.isBold ? '700' : '400';
-          ctx.font = '700 12.5px "Segoe UI", Arial, sans-serif';
+          ctx.font = '700 15.5px "Segoe UI", Arial, sans-serif';
           const valueText = r.text ? r.text : fmtMoney(r.value) + ' đ';
           const valueWidth = ctx.measureText(valueText).width;
           const labelMaxWidth = CW - valueWidth - 24;
 
-          ctx.font = labelWeight + ' 12.5px "Segoe UI", Arial, sans-serif';
+          ctx.font = labelWeight + ' 15.5px "Segoe UI", Arial, sans-serif';
           const labelLines = expWrapText(ctx, r.label, labelMaxWidth);
 
-          const labelLineH = 15;
-          const noteLineH = 13;
+          const labelLineH = 19;
+          const noteLineH = 15;
           let noteLines = [];
           let contentH = labelLines.length * labelLineH;
           if (r.note) {
-            ctx.font = 'italic 400 10.5px "Segoe UI", Arial, sans-serif';
+            ctx.font = 'italic 400 12.5px "Segoe UI", Arial, sans-serif';
             noteLines = expWrapText(ctx, r.note, labelMaxWidth);
             contentH += 2 + noteLines.length * noteLineH;
           }
 
-          const padV = 8;
+          const padV = 5;
           const rowHeight = Math.max(contentH, labelLineH) + padV * 2;
 
           ctx.textBaseline = 'top';
           let ty = y + (rowHeight - contentH) / 2;
-          ctx.font = labelWeight + ' 12.5px "Segoe UI", Arial, sans-serif';
+          ctx.font = labelWeight + ' 15.5px "Segoe UI", Arial, sans-serif';
           ctx.fillStyle = EXP.ink;
           labelLines.forEach(line => { ctx.fillText(line, PAD + 6, ty); ty += labelLineH; });
           if (r.note) {
-            ctx.font = 'italic 400 10.5px "Segoe UI", Arial, sans-serif';
+            ctx.font = 'italic 400 12.5px "Segoe UI", Arial, sans-serif';
             ctx.fillStyle = EXP.slate;
             ty += 2;
             noteLines.forEach(line => { ctx.fillText(line, PAD + 6, ty); ty += noteLineH; });
           }
 
-          ctx.font = '700 12.5px "Segoe UI", Arial, sans-serif';
+          ctx.font = '700 15.5px "Segoe UI", Arial, sans-serif';
           ctx.fillStyle = EXP.navy;
           ctx.textAlign = 'right';
           ctx.fillText(valueText, W - PAD - 6, y + (rowHeight - labelLineH) / 2);
@@ -2449,19 +2449,19 @@
           ctx.beginPath(); ctx.moveTo(PAD, y + rowHeight); ctx.lineTo(W - PAD, y + rowHeight); ctx.stroke();
           y += rowHeight;
         });
-        y += 8;
+        y += 5;
       });
 
       // ---- Footer disclaimer (không khung, chỉ chữ) ----
       const footerText = 'Công cụ tham khảo nội bộ, tài liệu minh họa chính thức do Bảo Việt Nhân thọ phát hành.';
-      ctx.font = 'italic 400 10.5px "Segoe UI", Arial, sans-serif';
+      ctx.font = 'italic 400 12px "Segoe UI", Arial, sans-serif';
       const footerLines = expWrapText(ctx, footerText, CW - 16);
       ctx.fillStyle = EXP.slate;
       ctx.textAlign = 'center';
-      y += 6;
-      footerLines.forEach((line, li) => ctx.fillText(line, W / 2, y + 12 + li * 14));
+      y += 3;
+      footerLines.forEach((line, li) => ctx.fillText(line, W / 2, y + 12 + li * 16));
       ctx.textAlign = 'left';
-      y += footerLines.length * 14 + 16;
+      y += footerLines.length * 16 + 10;
 
       return y;
     }
