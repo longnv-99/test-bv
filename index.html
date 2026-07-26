@@ -714,6 +714,15 @@
       background: #124b8f;
     }
 
+    .btn-green {
+      background: #1E8E3E;
+      color: #fff;
+    }
+
+    .btn-green:hover {
+      background: #17702F;
+    }
+
     .btn-danger-armed {
       background: var(--terracotta) !important;
       color: #fff !important;
@@ -2319,30 +2328,25 @@
       ctx.fillText(value, x + labelW + 4, y);
     }
 
-    function paintSummary(ctx, W, model, headerImg) {
-      const PAD = 32;
-      const CW = W - PAD * 2;
-      let y = 0;
-
-      // ---- Header: ảnh banner có sẵn tiêu đề "MINH HỌA QUYỀN LỢI" ----
+    // ---- Khối dùng chung cho mọi loại ảnh xuất ----
+    function drawHeaderBlock(ctx, W, headerImg) {
       if (headerImg) {
         const headerH = Math.round(W * (headerImg.height / headerImg.width));
         ctx.drawImage(headerImg, 0, 0, W, headerH);
-        y = headerH;
-      } else {
-        // fallback nếu ảnh không tải được
-        ctx.fillStyle = EXP.goldBar;
-        ctx.fillRect(0, 0, W, 8);
-        ctx.fillStyle = EXP.white;
-        ctx.fillRect(0, 8, W, 60);
-        ctx.font = '700 20px "Segoe UI", Arial, sans-serif';
-        ctx.fillStyle = EXP.navy;
-        ctx.fillText('MINH HỌA QUYỀN LỢI', PAD, 44);
-        y = 68;
+        return headerH;
       }
-      y += 8;
+      // fallback nếu ảnh không tải được
+      ctx.fillStyle = EXP.goldBar;
+      ctx.fillRect(0, 0, W, 8);
+      ctx.fillStyle = EXP.white;
+      ctx.fillRect(0, 8, W, 60);
+      ctx.font = '700 20px "Segoe UI", Arial, sans-serif';
+      ctx.fillStyle = EXP.navy;
+      ctx.fillText('MINH HỌA QUYỀN LỢI', 32, 44);
+      return 68;
+    }
 
-      // ---- Mục 1: Thông tin khách hàng ----
+    function drawCustomerInfoBlock(ctx, PAD, CW, W, y, model, rowOverrides) {
       const bar1H = drawMainSectionBar(ctx, PAD, y, CW, '1. THÔNG TIN KHÁCH HÀNG', 34);
       y += bar1H + 10;
 
@@ -2353,6 +2357,9 @@
         ['Giới tính', model.gender, 'Thời hạn hợp đồng', model.term + ' năm'],
         ['Nhóm nghề', 'Nhóm ' + model.nhom, 'Thời hạn đóng phí', model.paymentYears + ' năm']
       ];
+      if (rowOverrides) {
+        Object.keys(rowOverrides).forEach(idx => { infoRows[idx] = rowOverrides[idx]; });
+      }
       // Đo bề rộng nhãn dài nhất mỗi cột để giá trị luôn thẳng hàng theo cột
       ctx.font = '400 15.5px "Segoe UI", Arial, sans-serif';
       const leftLabelW = Math.max(...infoRows.map(r => ctx.measureText(r[0] + ':').width));
@@ -2376,7 +2383,29 @@
           ctx.beginPath(); ctx.moveTo(PAD, ry + rowH); ctx.lineTo(W - PAD, ry + rowH); ctx.stroke();
         }
       });
-      y += infoRows.length * rowH + 10;
+      return y + infoRows.length * rowH + 10;
+    }
+
+    function drawFooterBlock(ctx, W, PAD, CW, y) {
+      const footerText = 'Công cụ tham khảo nội bộ, tài liệu minh họa chính thức do Bảo Việt Nhân thọ phát hành.';
+      ctx.font = 'italic 400 12px "Segoe UI", Arial, sans-serif';
+      const footerLines = expWrapText(ctx, footerText, CW - 16);
+      ctx.fillStyle = EXP.slate;
+      ctx.textAlign = 'center';
+      y += 3;
+      footerLines.forEach((line, li) => ctx.fillText(line, W / 2, y + 12 + li * 16));
+      ctx.textAlign = 'left';
+      return y + footerLines.length * 16 + 10;
+    }
+
+    function paintSummary(ctx, W, model, headerImg) {
+      const PAD = 32;
+      const CW = W - PAD * 2;
+      let y = 0;
+
+      y = drawHeaderBlock(ctx, W, headerImg);
+      y += 8;
+      y = drawCustomerInfoBlock(ctx, PAD, CW, W, y, model);
 
       // ---- Mục 2: Tóm tắt quyền lợi bảo hiểm ----
       const bar2H = drawMainSectionBar(ctx, PAD, y, CW, '2. TÓM TẮT QUYỀN LỢI BẢO HIỂM', 34);
@@ -2452,17 +2481,7 @@
         y += 5;
       });
 
-      // ---- Footer disclaimer (không khung, chỉ chữ) ----
-      const footerText = 'Công cụ tham khảo nội bộ, tài liệu minh họa chính thức do Bảo Việt Nhân thọ phát hành.';
-      ctx.font = 'italic 400 12px "Segoe UI", Arial, sans-serif';
-      const footerLines = expWrapText(ctx, footerText, CW - 16);
-      ctx.fillStyle = EXP.slate;
-      ctx.textAlign = 'center';
-      y += 3;
-      footerLines.forEach((line, li) => ctx.fillText(line, W / 2, y + 12 + li * 16));
-      ctx.textAlign = 'left';
-      y += footerLines.length * 16 + 10;
-
+      y = drawFooterBlock(ctx, W, PAD, CW, y);
       return y;
     }
 
@@ -2491,13 +2510,171 @@
       return canvas;
     }
 
+    // ============ EXPORT: ẢNH MINH HỌA SẢN PHẨM CHÍNH (bảng năm-qua-năm) ============
+    function buildIllustrationModel() {
+      const inputs = state.lastInputs;
+      let riderTotal = 0;
+      inputs.riders.forEach(r => { riderTotal += riderPremiumForAge(r, inputs.initialAge, inputs.gender, inputs.nhomNgheNghiep); });
+      const tongPhiNam1 = (inputs.phiCoBan || 0) + (inputs.phiDongThem || 0) + riderTotal;
+      return {
+        name: state.customer.name || 'Khách hàng',
+        age: inputs.initialAge,
+        gender: inputs.gender === 'Nam' ? 'Nam' : 'Nữ',
+        nhom: inputs.nhomNgheNghiep,
+        phiCoBan: inputs.phiCoBan,
+        tongPhiNam1,
+        term: inputs.term,
+        paymentYears: inputs.paymentYears,
+        rows: state.results['476']
+      };
+    }
+
+    function paintIllustration(ctx, W, model, headerImg) {
+      const PAD = 32;
+      const CW = W - PAD * 2;
+      let y = 0;
+
+      y = drawHeaderBlock(ctx, W, headerImg);
+      y += 8;
+      y = drawCustomerInfoBlock(ctx, PAD, CW, W, y, model, {
+        1: ['Tuổi NĐBH', model.age + ' tuổi', 'Lãi suất minh họa', '4,76%']
+      });
+
+      // ---- Mục 2: Minh họa sản phẩm chính ----
+      const bar2H = drawMainSectionBar(ctx, PAD, y, CW, '2. MINH HỌA SẢN PHẨM CHÍNH', 34);
+      y += bar2H + 10;
+
+      // 4 cột: Năm HĐ/Tuổi | Tổng phí BH lũy kế | Thưởng duy trì & hoàn phí rủi ro | Giá trị tài khoản HĐ — độ rộng bằng nhau
+      const col0W = CW / 4;
+      const col1W = CW / 4;
+      const col2W = CW / 4;
+      const col3W = CW / 4;
+      const x0 = PAD, x1 = PAD + col0W, x2 = x1 + col1W, x3 = x2 + col2W;
+      const colCenters = [x0 + col0W / 2 + 6, x1 + col1W / 2, x2 + col2W / 2, x3 + col3W / 2];
+      const tableTopY = y;
+
+      // Header bảng — nền navy, chữ trắng, cỡ chữ bằng cỡ chữ giá trị mục 1 (16px)
+      const headRowH = 48;
+      ctx.fillStyle = EXP.navy;
+      ctx.fillRect(PAD, y, CW, headRowH);
+      ctx.font = '700 16px "Segoe UI", Arial, sans-serif';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const headLabels = ['Năm HĐ / Tuổi', 'Tổng phí BH\nlũy kế', 'Thưởng duy trì\n& hoàn phí rủi ro', 'Giá trị tài khoản\nhợp đồng'];
+      headLabels.forEach((label, i) => {
+        const lines = label.split('\n');
+        const startY = y + headRowH / 2 - (lines.length - 1) * 9;
+        lines.forEach((line, li) => ctx.fillText(line, colCenters[i], startY + li * 18));
+      });
+      ctx.textBaseline = 'alphabetic';
+      y += headRowH;
+
+      // Các dòng dữ liệu — mỗi năm 1 dòng, mốc 5 năm tô đậm màu vàng nhạt
+      const rowH = 32;
+      model.rows.forEach((r, i) => {
+        const isMilestone = r.year % 5 === 0;
+        ctx.fillStyle = isMilestone ? '#F3DFAE' : (i % 2 === 1 ? '#FBF9F2' : '#FFFFFF');
+        ctx.fillRect(PAD, y, CW, rowH);
+
+        ctx.font = (isMilestone ? '700 ' : '400 ') + '16px "Segoe UI", Arial, sans-serif';
+        ctx.fillStyle = isMilestone ? EXP.navy : EXP.ink;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(r.year + ' / Tuổi ' + r.age, colCenters[0], y + rowH / 2);
+        ctx.fillText(fmtMoneyTh(r.cumSPC), colCenters[1], y + rowH / 2);
+        ctx.fillText(r.bonusMilestoneEligible ? fmtMoneyTh(r.newBonusThisYear) : '—', colCenters[2], y + rowH / 2);
+        ctx.fillText(fmtMoneyTh(r.GTTKHD), colCenters[3], y + rowH / 2);
+        ctx.textBaseline = 'alphabetic';
+        ctx.textAlign = 'left';
+
+        ctx.strokeStyle = EXP.line;
+        ctx.beginPath(); ctx.moveTo(PAD, y + rowH); ctx.lineTo(W - PAD, y + rowH); ctx.stroke();
+        y += rowH;
+      });
+
+      // Đường phân cách dọc giữa 4 cột — giúp khoảng cách giữa các cột cân đối, rõ ràng
+      ctx.strokeStyle = EXP.line;
+      [x1, x2, x3].forEach(xLine => {
+        ctx.beginPath(); ctx.moveTo(xLine, tableTopY); ctx.lineTo(xLine, y); ctx.stroke();
+      });
+
+      // Viền ngoài bảng
+      ctx.strokeStyle = EXP.line;
+      ctx.strokeRect(PAD, y - (headRowH + model.rows.length * rowH), CW, headRowH + model.rows.length * rowH);
+
+      y += 10;
+      ctx.font = 'italic 400 10.5px "Segoe UI", Arial, sans-serif';
+      ctx.fillStyle = EXP.slate;
+      ctx.fillText('Đơn vị: nghìn đồng.', PAD, y + 10);
+      y += 24;
+
+      y = drawFooterBlock(ctx, W, PAD, CW, y);
+      return y;
+    }
+
+    async function renderIllustrationCanvas() {
+      const model = buildIllustrationModel();
+      const headerImg = await loadHeaderImage();
+      const W = 800;
+      const DPR = 2;
+
+      const measureCanvas = document.createElement('canvas');
+      measureCanvas.width = W; measureCanvas.height = 10;
+      const measureCtx = measureCanvas.getContext('2d');
+      const H = Math.ceil(paintIllustration(measureCtx, W, model, headerImg));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = W * DPR;
+      canvas.height = H * DPR;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(DPR, DPR);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+      paintIllustration(ctx, W, model, headerImg);
+
+      return canvas;
+    }
+
+    function isIOS() {
+      // Phát hiện iPhone/iPad, kể cả iPad đời mới báo user-agent giống macOS
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    function dataUrlToBlob(dataUrl) {
+      const parts = dataUrl.split(',');
+      const mimeMatch = parts[0].match(/:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+      const byteString = atob(parts[1]);
+      const ia = new Uint8Array(byteString.length);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+      return new Blob([ia], { type: mime });
+    }
+
+    // Trả về 'ios-newtab' nếu đã xử lý theo cách mở tab mới (Safari iOS),
+    // 'downloaded' nếu đã tải bằng thẻ <a download> (Android/desktop).
     function downloadDataUrl(dataUrl, filename) {
+      const blob = dataUrlToBlob(dataUrl);
+      const blobUrl = URL.createObjectURL(blob);
+
+      if (isIOS()) {
+        // Safari trên iOS không hỗ trợ đáng tin cậy việc tải file qua thẻ <a download>,
+        // kể cả với blob URL — cách ổn định nhất là mở ảnh ở tab mới để người dùng
+        // tự nhấn giữ và chọn "Lưu vào Ảnh".
+        window.open(blobUrl, '_blank');
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+        return 'ios-newtab';
+      }
+
       const a = document.createElement('a');
-      a.href = dataUrl;
+      a.href = blobUrl;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      return 'downloaded';
     }
 
     async function exportSummaryPNG(btn) {
@@ -2505,7 +2682,28 @@
       btn.disabled = true; btn.textContent = 'Đang tạo ảnh...';
       try {
         const canvas = await renderSummaryCanvas();
-        downloadDataUrl(canvas.toDataURL('image/png'), `Tom_tat_quyen_loi_${(state.customer.name || 'khach_hang').replace(/\s+/g, '_')}.png`);
+        const filename = `Quyền_Lợi_${(state.customer.name || 'khach_hang').replace(/\s+/g, '_')}.png`;
+        const mode = downloadDataUrl(canvas.toDataURL('image/png'), filename);
+        if (mode === 'ios-newtab') {
+          alert('Ảnh đã mở ở tab mới. Trên iPhone/iPad, hãy nhấn giữ vào ảnh và chọn "Lưu vào Ảnh" (Save to Photos) để tải về.');
+        }
+      } catch (e) {
+        alert('Không thể tạo ảnh: ' + e.message);
+      } finally {
+        btn.disabled = false; btn.textContent = original;
+      }
+    }
+
+    async function exportIllustrationPNG(btn) {
+      const original = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Đang tạo ảnh...';
+      try {
+        const canvas = await renderIllustrationCanvas();
+        const filename = `Minh_Họa_${(state.customer.name || 'khach_hang').replace(/\s+/g, '_')}.png`;
+        const mode = downloadDataUrl(canvas.toDataURL('image/png'), filename);
+        if (mode === 'ios-newtab') {
+          alert('Ảnh đã mở ở tab mới. Trên iPhone/iPad, hãy nhấn giữ vào ảnh và chọn "Lưu vào Ảnh" (Save to Photos) để tải về.');
+        }
       } catch (e) {
         alert('Không thể tạo ảnh: ' + e.message);
       } finally {
@@ -2528,10 +2726,12 @@
   </div>
   <div class="actions">
     <button class="btn btn-secondary" id="btn-back-2">← Quay lại bảng minh họa</button>
+    <button class="btn btn-green" id="btn-export-illustration">Tải ảnh minh họa</button>
     <button class="btn btn-blue" id="btn-export-png">Tải ảnh tóm tắt</button>
     <button class="btn btn-primary" id="btn-restart">Tạo minh họa mới</button>
   </div>
   `;
+      document.getElementById('btn-export-illustration').addEventListener('click', (e) => exportIllustrationPNG(e.currentTarget));
       document.getElementById('btn-export-png').addEventListener('click', (e) => exportSummaryPNG(e.currentTarget));
       document.getElementById('btn-back-2').addEventListener('click', () => { state.page = 2; renderAll(); });
       const restartBtn = document.getElementById('btn-restart');
