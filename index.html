@@ -2697,14 +2697,24 @@
     // Thử tự động mở Safari (iOS) hoặc Chrome (Android) bằng URL scheme đặc biệt —
     // kỹ thuật này được nhiều web Việt Nam dùng để thoát khỏi WebView của Zalo/Facebook.
     // KHÔNG đảm bảo hoạt động 100% với mọi phiên bản app — vẫn cần nút/hướng dẫn thủ công dự phòng.
-    function tryOpenRealBrowser() {
+    // target: 'safari' | 'chrome' | undefined (mặc định theo nền tảng).
+    // Trên iOS: hỗ trợ chọn rõ Safari hoặc Chrome (nếu máy có cài Chrome).
+    // Trên Android: luôn nhắm tới Chrome (trình duyệt phổ biến nhất).
+    function tryOpenRealBrowser(target) {
       const url = window.location.href;
       if (isIOS()) {
-        window.location.href = `x-safari-${url}`;
-        setTimeout(() => { window.location.href = `com-apple-mobilesafari-tab:${url}`; }, 600);
+        if (target === 'chrome') {
+          const scheme = url.startsWith('https://') ? 'googlechromes://' : 'googlechrome://';
+          const stripped = url.replace(/^https?:\/\//, '');
+          window.location.href = scheme + stripped;
+        } else {
+          window.location.href = `x-safari-${url}`;
+          setTimeout(() => { window.location.href = `com-apple-mobilesafari-tab:${url}`; }, 600);
+        }
       } else {
         const stripped = url.replace(/^https?:\/\//, '');
-        window.location.href = `intent://${stripped}#Intent;scheme=https;package=com.android.chrome;end`;
+        const fallback = encodeURIComponent(url);
+        window.location.href = `intent://${stripped}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${fallback};end`;
       }
     }
 
@@ -2874,10 +2884,51 @@
       window.scrollTo(0, 0);
     }
 
+    // Màn hình chặn đầu tiên khi phát hiện đang mở trong app (Zalo, Facebook, Messenger...) —
+    // hiện TRƯỚC cả công cụ (trước màn hình mật khẩu), buộc người dùng xử lý trước khi vào công cụ.
+    // Nút bấm chủ động (thay vì tự động chạy ngầm) đáng tin cậy hơn vì là hành động người dùng
+    // trực tiếp — đặc biệt quan trọng với Safari/iOS vốn chỉ cho phép điều hướng ra ngoài khi có
+    // thao tác bấm thật. Trả về true nếu đã chặn (chưa nên mở công cụ).
+    function showInAppGate() {
+      const appName = detectInAppBrowser();
+      if (!appName) return false;
+
+      const iosButtons = `
+      <button id="gate-open-safari" style="width:100%;padding:15px;border:none;border-radius:30px;background:#175AAB;color:#fff;font-size:15.5px;font-weight:700;cursor:pointer;margin-bottom:10px;">Mở bằng Safari</button>
+      <button id="gate-open-chrome" style="width:100%;padding:15px;border:1px solid #175AAB;border-radius:30px;background:#fff;color:#175AAB;font-size:15.5px;font-weight:700;cursor:pointer;margin-bottom:14px;">Mở bằng Chrome</button>`;
+      const androidButtons = `
+      <button id="gate-open-chrome" style="width:100%;padding:15px;border:none;border-radius:30px;background:#175AAB;color:#fff;font-size:15.5px;font-weight:700;cursor:pointer;margin-bottom:14px;">Mở bằng Chrome</button>`;
+
+      const overlay = document.createElement('div');
+      overlay.id = 'inapp-gate-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0B3A66;display:flex;align-items:center;justify-content:center;padding:24px;';
+      overlay.innerHTML = `
+    <div style="max-width:420px;width:100%;background:#fff;border-radius:16px;padding:32px 24px;text-align:center;font-family:'Segoe UI',Arial,sans-serif;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+      <div style="font-size:42px;margin-bottom:14px;line-height:1;">⚠️</div>
+      <div style="font-size:18px;font-weight:700;color:#102A43;margin-bottom:10px;">Bạn đang mở link trong ${appName}</div>
+      <div style="font-size:14px;color:#5C6B7A;line-height:1.6;margin-bottom:22px;">
+        Trình duyệt riêng của ${appName} không hỗ trợ tải ảnh. Vui lòng mở bằng trình duyệt thật để tiếp tục sử dụng công cụ.
+      </div>
+      ${isIOS() ? iosButtons : androidButtons}
+      <div style="font-size:12px;color:#8A97A6;line-height:1.6;">
+        Nếu bấm nút trên mà không tự chuyển (ví dụ chưa cài trình duyệt đó), hãy bấm biểu tượng "⋮" / "···" ở góc màn hình và chọn "Mở bằng trình duyệt khác".
+      </div>
+    </div>`;
+      document.body.appendChild(overlay);
+
+      const safariBtn = document.getElementById('gate-open-safari');
+      if (safariBtn) safariBtn.addEventListener('click', () => { copyCurrentUrl(); tryOpenRealBrowser('safari'); });
+      document.getElementById('gate-open-chrome').addEventListener('click', () => { copyCurrentUrl(); tryOpenRealBrowser('chrome'); });
+      return true;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       try {
-        initGate();
-        renderAll();
+        const blocked = showInAppGate();
+        if (!blocked) {
+          initGate();
+          renderAll();
+        }
       } catch (e) {
         document.body.innerHTML = '<div style="padding:24px;font-family:"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;color:#B5562D">Đã xảy ra lỗi khi tải công cụ: ' + e.message + '<br><br>Vui lòng thử mở lại bằng Chrome/Safari, hoặc liên hệ quản trị viên.</div>';
         console.error(e);
