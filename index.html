@@ -2735,14 +2735,11 @@
       return true;
     }
 
-    function dataUrlToBlob(dataUrl) {
-      const parts = dataUrl.split(',');
-      const mimeMatch = parts[0].match(/:(.*?);/);
-      const mime = mimeMatch ? mimeMatch[1] : 'image/png';
-      const byteString = atob(parts[1]);
-      const ia = new Uint8Array(byteString.length);
-      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-      return new Blob([ia], { type: mime });
+    async function dataUrlToBlob(dataUrl) {
+      // Dùng fetch() để trình duyệt tự giải mã base64 bằng code gốc (native), nhanh hơn
+      // đáng kể so với vòng lặp JS thủ công (atob + đọc từng byte), đặc biệt trên Safari.
+      const res = await fetch(dataUrl);
+      return await res.blob();
     }
 
     // Trả về 'ios-newtab' nếu đã xử lý theo cách mở tab mới (Safari iOS),
@@ -2750,17 +2747,37 @@
     // 'downloaded' nếu đã tải bằng thẻ <a download> (Android/desktop).
     // preOpenedTab: tab đã được window.open('', '_blank') mở SẴN ngay khi bấm nút
     // (đồng bộ, trong lúc còn user-gesture) — bắt buộc với Safari/iOS.
-    function downloadDataUrl(dataUrl, filename, preOpenedTab) {
-      const blob = dataUrlToBlob(dataUrl);
+    async function downloadDataUrl(dataUrl, filename, preOpenedTab) {
+      const blob = await dataUrlToBlob(dataUrl);
       const blobUrl = URL.createObjectURL(blob);
 
       if (isIOS()) {
         // Safari trên iOS chặn window.open() nếu nó không được gọi đồng bộ ngay
         // trong lúc xử lý sự kiện bấm nút — nên tab phải được mở SẴN từ trước
-        // (xem preOpenedTab), ở đây chỉ điều hướng tab đó tới ảnh đã dựng xong.
+        // (xem preOpenedTab). Ở đây KHÔNG điều hướng cả trang (location.href) vì
+        // Safari có thể coi đó là 1 lượt tải trang mới trên tab nền và tạm dừng xử lý
+        // cho tới khi người dùng chuyển qua tab đó — thay vào đó, ghi thẳng ảnh vào
+        // DOM của tab đã mở sẵn (không có điều hướng nào xảy ra) để hiện ngay lập tức,
+        // đồng thời chủ động gọi focus() để đưa tab đó lên trước.
         if (preOpenedTab && !preOpenedTab.closed) {
-          preOpenedTab.location.href = blobUrl;
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+          try {
+            preOpenedTab.document.open();
+            preOpenedTab.document.write(
+              '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+              '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+              '<title>' + filename + '</title></head>' +
+              '<body style="margin:0;background:#e9edf1;text-align:center;font-family:\'Segoe UI\',Arial,sans-serif;">' +
+              '<img src="' + blobUrl + '" style="max-width:100%;display:block;margin:0 auto;">' +
+              '<div style="color:#5C6B7A;padding:14px;font-size:14px;">Nhấn giữ vào ảnh và chọn "Lưu vào Ảnh" để tải về.</div>' +
+              '</body></html>'
+            );
+            preOpenedTab.document.close();
+          } catch (e) {
+            // Dự phòng nếu vì lý do nào đó không ghi được DOM trực tiếp
+            preOpenedTab.location.href = blobUrl;
+          }
+          try { preOpenedTab.focus(); } catch (e) { /* bỏ qua nếu trình duyệt chặn focus() */ }
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
           return 'ios-newtab';
         }
         // Tab bị Safari chặn ngay từ đầu (hiếm khi xảy ra nếu mở đúng lúc bấm nút)
@@ -2791,10 +2808,8 @@
       try {
         const canvas = await renderSummaryCanvas();
         const filename = `Quyền_Lợi_${(state.customer.name || 'khach_hang').replace(/\s+/g, '_')}.png`;
-        const mode = downloadDataUrl(canvas.toDataURL('image/png'), filename, iosTab);
-        if (mode === 'ios-newtab') {
-          alert('Ảnh đã mở ở tab mới. Trên iPhone/iPad, hãy nhấn giữ vào ảnh và chọn "Lưu vào Ảnh" (Save to Photos) để tải về.');
-        } else if (mode === 'ios-blocked') {
+        const mode = await downloadDataUrl(canvas.toDataURL('image/png'), filename, iosTab);
+        if (mode === 'ios-blocked') {
           alert('Safari đã chặn việc mở ảnh. Vào Cài đặt Safari > bật "Cho phép Popup" cho trang này, rồi thử lại.');
         }
       } catch (e) {
@@ -2816,10 +2831,8 @@
       try {
         const canvas = await renderIllustrationCanvas();
         const filename = `Minh_Họa_${(state.customer.name || 'khach_hang').replace(/\s+/g, '_')}.png`;
-        const mode = downloadDataUrl(canvas.toDataURL('image/png'), filename, iosTab);
-        if (mode === 'ios-newtab') {
-          alert('Ảnh đã mở ở tab mới. Trên iPhone/iPad, hãy nhấn giữ vào ảnh và chọn "Lưu vào Ảnh" (Save to Photos) để tải về.');
-        } else if (mode === 'ios-blocked') {
+        const mode = await downloadDataUrl(canvas.toDataURL('image/png'), filename, iosTab);
+        if (mode === 'ios-blocked') {
           alert('Safari đã chặn việc mở ảnh. Vào Cài đặt Safari > bật "Cho phép Popup" cho trang này, rồi thử lại.');
         }
       } catch (e) {
