@@ -1078,6 +1078,18 @@
       line-height: 1.5;
     }
 
+    .inapp-warning {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: #FDECEA;
+      border: 1px solid #E8998D;
+      border-left: 4px solid var(--terracotta, #C0392B);
+      border-radius: 8px;
+      font-size: 13px;
+      color: #8a2e22;
+      line-height: 1.6;
+    }
+
     footer.app-footer {
       text-align: center;
       padding: 16px;
@@ -2642,6 +2654,77 @@
         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     }
 
+    // Phát hiện trình duyệt nhúng bên trong app (Zalo, Facebook, Messenger, Instagram, Zing, TikTok...).
+    // Các trình duyệt này (WebView riêng của app, không phải Safari/Chrome thật) thường CHẶN hoặc
+    // không hỗ trợ tải file/mở tab mới — không có cách nào khắc phục hoàn toàn bằng code, cách duy
+    // nhất là hướng dẫn người dùng mở link bằng trình duyệt thật (Safari/Chrome).
+    function detectInAppBrowser() {
+      const ua = navigator.userAgent || '';
+      if (/Zalo/i.test(ua)) return 'Zalo';
+      if (/FBAN|FBAV|FB_IAB/i.test(ua)) return 'Facebook/Messenger';
+      if (/Instagram/i.test(ua)) return 'Instagram';
+      if (/Line\//i.test(ua)) return 'Line';
+      if (/MicroMessenger/i.test(ua)) return 'WeChat';
+      if (/TikTok|musical_ly/i.test(ua)) return 'TikTok';
+      // Trên iOS, Safari thật luôn có "Safari/" ở cuối user-agent; nhiều app nhúng WebView không có.
+      if (/iPhone|iPad|iPod/.test(ua) && !/Safari\//.test(ua)) return 'ứng dụng đang mở link này';
+      return null;
+    }
+
+    function copyCurrentUrl() {
+      const url = window.location.href;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url);
+          return true;
+        }
+      } catch (e) { /* rơi xuống cách dự phòng bên dưới */ }
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // Thử tự động mở Safari (iOS) hoặc Chrome (Android) bằng URL scheme đặc biệt —
+    // kỹ thuật này được nhiều web Việt Nam dùng để thoát khỏi WebView của Zalo/Facebook.
+    // KHÔNG đảm bảo hoạt động 100% với mọi phiên bản app — vẫn cần nút/hướng dẫn thủ công dự phòng.
+    function tryOpenRealBrowser() {
+      const url = window.location.href;
+      if (isIOS()) {
+        window.location.href = `x-safari-${url}`;
+        setTimeout(() => { window.location.href = `com-apple-mobilesafari-tab:${url}`; }, 600);
+      } else {
+        const stripped = url.replace(/^https?:\/\//, '');
+        window.location.href = `intent://${stripped}#Intent;scheme=https;package=com.android.chrome;end`;
+      }
+    }
+
+    // Nếu đang mở trong trình duyệt riêng của 1 app (Zalo, Facebook...), cảnh báo NGAY
+    // thay vì cố tải (vì hầu hết các WebView này chặn tải file/mở tab, không có cách
+    // khắc phục triệt để bằng code — chỉ có thể hướng dẫn người dùng mở bằng trình duyệt thật).
+    // Trả về true nếu đã cảnh báo (nên dừng lại, không thử tải nữa).
+    function warnIfInAppBrowser() {
+      const appName = detectInAppBrowser();
+      if (!appName) return false;
+      const copied = copyCurrentUrl();
+      const goBrowser = confirm(
+        `Bạn đang mở link này bên trong ${appName} — trình duyệt riêng của ứng dụng này thường KHÔNG tải được ảnh.\n\n` +
+        `Bấm OK để thử tự động mở bằng Safari/Chrome. Nếu không tự mở được, hãy bấm "⋮"/"···" ở góc màn hình và chọn "Mở bằng trình duyệt khác".` +
+        (copied ? '\n\n(Đã tự động sao chép link trang này — có thể dán trực tiếp vào Safari/Chrome nếu cần.)' : '')
+      );
+      if (goBrowser) tryOpenRealBrowser();
+      return true;
+    }
+
     function dataUrlToBlob(dataUrl) {
       const parts = dataUrl.split(',');
       const mimeMatch = parts[0].match(/:(.*?);/);
@@ -2653,18 +2736,26 @@
     }
 
     // Trả về 'ios-newtab' nếu đã xử lý theo cách mở tab mới (Safari iOS),
+    // 'ios-blocked' nếu Safari đã chặn việc mở tab (cần bật popup thủ công),
     // 'downloaded' nếu đã tải bằng thẻ <a download> (Android/desktop).
-    function downloadDataUrl(dataUrl, filename) {
+    // preOpenedTab: tab đã được window.open('', '_blank') mở SẴN ngay khi bấm nút
+    // (đồng bộ, trong lúc còn user-gesture) — bắt buộc với Safari/iOS.
+    function downloadDataUrl(dataUrl, filename, preOpenedTab) {
       const blob = dataUrlToBlob(dataUrl);
       const blobUrl = URL.createObjectURL(blob);
 
       if (isIOS()) {
-        // Safari trên iOS không hỗ trợ đáng tin cậy việc tải file qua thẻ <a download>,
-        // kể cả với blob URL — cách ổn định nhất là mở ảnh ở tab mới để người dùng
-        // tự nhấn giữ và chọn "Lưu vào Ảnh".
-        window.open(blobUrl, '_blank');
+        // Safari trên iOS chặn window.open() nếu nó không được gọi đồng bộ ngay
+        // trong lúc xử lý sự kiện bấm nút — nên tab phải được mở SẴN từ trước
+        // (xem preOpenedTab), ở đây chỉ điều hướng tab đó tới ảnh đã dựng xong.
+        if (preOpenedTab && !preOpenedTab.closed) {
+          preOpenedTab.location.href = blobUrl;
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+          return 'ios-newtab';
+        }
+        // Tab bị Safari chặn ngay từ đầu (hiếm khi xảy ra nếu mở đúng lúc bấm nút)
         setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
-        return 'ios-newtab';
+        return 'ios-blocked';
       }
 
       const a = document.createElement('a');
@@ -2678,16 +2769,26 @@
     }
 
     async function exportSummaryPNG(btn) {
+      if (warnIfInAppBrowser()) return;
       const original = btn.textContent;
+      // Mở tab trống NGAY LẬP TỨC, đồng bộ, trong lúc còn user-gesture —
+      // bắt buộc với Safari/iOS, không được để bất kỳ await nào xen vào trước dòng này.
+      const iosTab = isIOS() ? window.open('', '_blank') : null;
+      if (iosTab) {
+        iosTab.document.write('<title>Đang tạo ảnh...</title><body style="font-family:sans-serif;text-align:center;padding-top:40vh;color:#5C6B7A">Đang tạo ảnh, vui lòng đợi...</body>');
+      }
       btn.disabled = true; btn.textContent = 'Đang tạo ảnh...';
       try {
         const canvas = await renderSummaryCanvas();
         const filename = `Quyền_Lợi_${(state.customer.name || 'khach_hang').replace(/\s+/g, '_')}.png`;
-        const mode = downloadDataUrl(canvas.toDataURL('image/png'), filename);
+        const mode = downloadDataUrl(canvas.toDataURL('image/png'), filename, iosTab);
         if (mode === 'ios-newtab') {
           alert('Ảnh đã mở ở tab mới. Trên iPhone/iPad, hãy nhấn giữ vào ảnh và chọn "Lưu vào Ảnh" (Save to Photos) để tải về.');
+        } else if (mode === 'ios-blocked') {
+          alert('Safari đã chặn việc mở ảnh. Vào Cài đặt Safari > bật "Cho phép Popup" cho trang này, rồi thử lại.');
         }
       } catch (e) {
+        if (iosTab && !iosTab.closed) iosTab.close();
         alert('Không thể tạo ảnh: ' + e.message);
       } finally {
         btn.disabled = false; btn.textContent = original;
@@ -2695,16 +2796,24 @@
     }
 
     async function exportIllustrationPNG(btn) {
+      if (warnIfInAppBrowser()) return;
       const original = btn.textContent;
+      const iosTab = isIOS() ? window.open('', '_blank') : null;
+      if (iosTab) {
+        iosTab.document.write('<title>Đang tạo ảnh...</title><body style="font-family:sans-serif;text-align:center;padding-top:40vh;color:#5C6B7A">Đang tạo ảnh, vui lòng đợi...</body>');
+      }
       btn.disabled = true; btn.textContent = 'Đang tạo ảnh...';
       try {
         const canvas = await renderIllustrationCanvas();
         const filename = `Minh_Họa_${(state.customer.name || 'khach_hang').replace(/\s+/g, '_')}.png`;
-        const mode = downloadDataUrl(canvas.toDataURL('image/png'), filename);
+        const mode = downloadDataUrl(canvas.toDataURL('image/png'), filename, iosTab);
         if (mode === 'ios-newtab') {
           alert('Ảnh đã mở ở tab mới. Trên iPhone/iPad, hãy nhấn giữ vào ảnh và chọn "Lưu vào Ảnh" (Save to Photos) để tải về.');
+        } else if (mode === 'ios-blocked') {
+          alert('Safari đã chặn việc mở ảnh. Vào Cài đặt Safari > bật "Cho phép Popup" cho trang này, rồi thử lại.');
         }
       } catch (e) {
+        if (iosTab && !iosTab.closed) iosTab.close();
         alert('Không thể tạo ảnh: ' + e.message);
       } finally {
         btn.disabled = false; btn.textContent = original;
@@ -2724,6 +2833,12 @@
       Công cụ tham khảo nội bộ, tài liệu minh họa chính thức do Bảo Việt Nhân thọ phát hành.
     </div>
   </div>
+  ${detectInAppBrowser() ? `
+  <div class="inapp-warning">
+    ⚠️ Bạn đang mở trang này trong <strong>${detectInAppBrowser()}</strong> — trình duyệt riêng của ứng dụng này thường <strong>không tải được ảnh</strong>.
+    Hãy bấm nút bên dưới để thử tự động mở Safari/Chrome, hoặc bấm "⋮" / "···" ở góc màn hình và chọn <strong>"Mở bằng trình duyệt khác"</strong>.
+    <div style="margin-top:10px"><button class="btn btn-secondary" id="btn-open-real-browser" style="padding:8px 16px;font-size:13px">Thử mở bằng Safari/Chrome</button></div>
+  </div>` : ''}
   <div class="actions">
     <button class="btn btn-secondary" id="btn-back-2">← Quay lại bảng minh họa</button>
     <button class="btn btn-green" id="btn-export-illustration">Tải ảnh minh họa</button>
@@ -2732,6 +2847,8 @@
   </div>
   `;
       document.getElementById('btn-export-illustration').addEventListener('click', (e) => exportIllustrationPNG(e.currentTarget));
+      const openBrowserBtn = document.getElementById('btn-open-real-browser');
+      if (openBrowserBtn) openBrowserBtn.addEventListener('click', () => { copyCurrentUrl(); tryOpenRealBrowser(); });
       document.getElementById('btn-export-png').addEventListener('click', (e) => exportSummaryPNG(e.currentTarget));
       document.getElementById('btn-back-2').addEventListener('click', () => { state.page = 2; renderAll(); });
       const restartBtn = document.getElementById('btn-restart');
