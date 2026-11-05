@@ -412,6 +412,12 @@
       margin-top: 5px;
     }
 
+    .hint-error {
+      color: var(--terracotta);
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
     .hint-pending {
       color: #A65D2E;
       font-weight: 600;
@@ -1475,50 +1481,95 @@
       const idx = Math.min(Math.max(age, 0), arr.length - 1);
       return arr[idx];
     }
+    // ============ BẢNG GIỚI HẠN NHẬP LIỆU (sửa số tại đây — mọi gợi ý & kiểm tra đều đọc từ bảng này) ============
+    const LIMITS = {
+      tuoi: { min: 0, max: 65 },
+      phiCoBan: { min: 6000000 },                                  // không giới hạn tối đa
+      stbhChinh: { min: 50000000, minHeSoPhi: 5, max: 25000000000 }, // tối đa theo tuổi: hệ số MAXSTBH × phí
+      phiDongThem: { min: 1000000, maxHeSoPhi: 5 },                // 0 = không đóng thêm
+      thoiHanDongPhi: { min: 4 },                                  // tối đa = thời hạn hợp đồng
+      R21: { min: 100000000, max: 3000000000 },
+      R25: { min: 100000000, maxDuoi18: 1000000000, maxTu18: 3000000000 },
+      R22: { min: 100000000, max: 500000000, nhomKhongNhan: [5, 6] },
+      R23: { min: 100000000, maxTheoNhom: { 1: 5000000000, 2: 5000000000, 3: 5000000000, 4: 5000000000, 5: 300000000 }, nhomKhongNhan: [6] },
+      R29: {
+        min: 100000,
+        bacPhi: [ [100000000, 2000000], [50000000, 1000000], [30000000, 500000], [10000000, 300000] ], // [phí cơ bản từ, STBH tối đa]
+        maxDuoi18: 300000, maxTu18: 2000000
+      },
+      R26: [ [50000000, 'lucbao'], [30000000, 'kimcuong'], [20000000, 'bachkim'], [10000000, 'vang'], [5000000, 'bac'] ] // [phí cơ bản từ, hạng tối đa]
+    };
+    const fmtTrieu = n => n >= 1e9 ? (n / 1e9).toLocaleString('vi-VN') + ' tỷ' : (n >= 1e6 ? (n / 1e6).toLocaleString('vi-VN') + ' triệu' : fmtMoney(n) + ' đ');
+
     function stbhChinhLimits(phiCoBan, age, gender) {
       if (!phiCoBan || age === null) return null;
-      const min = Math.max(50000000, 5 * phiCoBan);
-      const max = maxStbhMultiplier(age, gender) * phiCoBan;
-      return { min, max };
+      const L = LIMITS.stbhChinh;
+      const heSo = maxStbhMultiplier(age, gender);
+      const min = Math.max(L.min, L.minHeSoPhi * phiCoBan);
+      const maxTheoTuoi = heSo * phiCoBan;
+      const max = Math.min(maxTheoTuoi, L.max);
+      return {
+        min, max,
+        minReason: min === L.min ? null : `${L.minHeSoPhi} lần phí cơ bản`,
+        maxReason: max === L.max ? null : `${heSo} lần phí cơ bản với NĐBH ${gender === 'Nam' ? 'nam' : 'nữ'} ${age} tuổi`
+      };
     }
     function phiDongThemMaxLimit(phiCoBan) {
       if (!phiCoBan) return null;
-      return { min: 1000000, max: 5 * phiCoBan };
+      return { min: LIMITS.phiDongThem.min, max: LIMITS.phiDongThem.maxHeSoPhi * phiCoBan };
     }
+    // Trả về { min, max, maxReason } | { notAllowed: 'nhom'|'phi' } | null (chưa đủ dữ liệu)
     function riderStbhLimits(riderType, age, phiCoBan, stbhChinh) {
-      if (riderType === 'R21' || riderType === 'R22' || riderType === 'R23' || riderType === 'R25') {
+      const nhom = state.customer.nhomNgheNghiep;
+      const capBy = (caps) => { // caps: [[giá trị, lý do], ...] → lấy mức nhỏ nhất
+        const c = caps.reduce((a, b) => (b[0] < a[0] || (b[0] === a[0] && !a[1] && b[1]) ? b : a));
+        return { max: c[0], maxReason: c[1] };
+      };
+      const stbhCap = [stbhChinh, 'không vượt STBH sản phẩm chính'];
+      if (riderType === 'R21') {
         if (!stbhChinh) return null;
-        return { min: 100000000, max: stbhChinh };
+        return { min: LIMITS.R21.min, ...capBy([stbhCap, [LIMITS.R21.max, null]]) };
+      }
+      if (riderType === 'R25') {
+        if (!stbhChinh || age === null) return null;
+        const L = LIMITS.R25;
+        const cap = age < 18 ? [L.maxDuoi18, 'áp dụng cho NĐBH dưới 18 tuổi'] : [L.maxTu18, null];
+        return { min: L.min, ...capBy([stbhCap, cap]) };
+      }
+      if (riderType === 'R22') {
+        const L = LIMITS.R22;
+        if (L.nhomKhongNhan.includes(nhom)) return { notAllowed: 'nhom' };
+        if (!stbhChinh) return null;
+        return { min: L.min, ...capBy([stbhCap, [L.max, null]]) };
+      }
+      if (riderType === 'R23') {
+        const L = LIMITS.R23;
+        if (L.nhomKhongNhan.includes(nhom) || !L.maxTheoNhom[nhom]) return { notAllowed: 'nhom' };
+        if (!stbhChinh) return null;
+        return { min: L.min, ...capBy([stbhCap, [L.maxTheoNhom[nhom], `áp dụng cho Nhóm nghề ${nhom}`]]) };
       }
       if (riderType === 'R29') {
         if (!phiCoBan || age === null) return null;
-        let tierMax;
-        if (phiCoBan >= 100000000) tierMax = 2000000;
-        else if (phiCoBan >= 50000000) tierMax = 1000000;
-        else if (phiCoBan >= 30000000) tierMax = 500000;
-        else if (phiCoBan >= 10000000) tierMax = 300000;
-        else return { notAllowed: true };
-        const ageCap = age >= 18 ? 2000000 : 300000;
-        const min = phiCoBan >= 10000000 ? 100000 : null;
-        if (min === null) return { notAllowed: true };
-        return { min, max: Math.min(tierMax, ageCap) };
+        const L = LIMITS.R29;
+        const bac = L.bacPhi.find(b => phiCoBan >= b[0]);
+        if (!bac) return { notAllowed: 'phi' };
+        const caps = [[bac[1], `theo mức phí cơ bản ${fmtMoney(phiCoBan)} đ`]];
+        caps.push(age >= 18 ? [L.maxTu18, null] : [L.maxDuoi18, 'áp dụng cho NĐBH dưới 18 tuổi']);
+        return { min: L.min, ...capBy(caps) };
       }
       return null;
     }
     const R26_TIER_ORDER = ['KHÔNG', 'Bạc', 'Vàng', 'Bạch Kim', 'Kim Cương', 'Lục Bảo'];
+    const R26_KEY_ORDER = ['bac', 'vang', 'bachkim', 'kimcuong', 'lucbao'];
+    function r26MaxTierKey(phiCoBan) {
+      const b = LIMITS.R26.find(x => phiCoBan >= x[0]);
+      return b ? b[1] : null;
+    }
     function r26TierRange(phiCoBan) {
       if (!phiCoBan) return null;
-      function tierFor(threshold) {
-        if (phiCoBan >= 50000000) return 'Lục Bảo';
-        if (phiCoBan >= 30000000) return 'Kim Cương';
-        if (phiCoBan >= 20000000) return 'Bạch Kim';
-        if (phiCoBan >= 10000000) return 'Vàng';
-        if (phiCoBan >= 5000000) return 'Bạc';
-        return 'KHÔNG';
-      }
-      const minTier = phiCoBan >= 5000000 ? 'Bạc' : 'KHÔNG';
-      const maxTier = tierFor();
-      return { minTier, maxTier };
+      const maxKey = r26MaxTierKey(phiCoBan);
+      if (!maxKey) return { minTier: 'KHÔNG', maxTier: 'KHÔNG' };
+      return { minTier: 'Bạc', maxTier: R26_TIER_ORDER[R26_KEY_ORDER.indexOf(maxKey) + 1] };
     }
     function resolvedTerm() {
       if (state.product.termMode === 'den90') {
@@ -1680,6 +1731,7 @@
           <img src="images/vnd.svg" alt="" class="input-icon">
           <input type="text" inputmode="numeric" id="f-phicoban" value="${state.product.phiCoBan}" placeholder="VD: 30.000.000">
         </div>
+        <div class="hint" id="hint-phicoban"></div>
         <div class="hint" id="hint-daily-saving">${dailySaving !== null ? `Tiết kiệm: <b>${fmtMoney(dailySaving)} đồng/ngày</b>` : ''}</div>
       </div>
       <div class="field">
@@ -1720,7 +1772,7 @@
             <input type="number" id="f-payyears" min="4" max="${term || 30}" value="${state.product.paymentYears}">
           </div>
         </div>
-        <div class="hint">Tối thiểu 4 năm theo quy định bắt buộc của sản phẩm.</div>
+        <div class="hint" id="hint-payyears"></div>
       </div>
     </div>
   </div>
@@ -1866,7 +1918,7 @@
         });
       });
       document.getElementById('f-term').addEventListener('change', e => { state.product.termMode = e.target.value; renderPage1(); });
-      document.getElementById('f-payyears').addEventListener('input', e => state.product.paymentYears = Number(e.target.value));
+      document.getElementById('f-payyears').addEventListener('input', e => { state.product.paymentYears = Number(e.target.value); refreshHints(); });
 
       document.querySelectorAll('.rider-toggle').forEach(cb => {
         cb.addEventListener('change', () => {
@@ -1876,10 +1928,10 @@
       });
       document.querySelectorAll('[data-rider-stbh]').forEach(inp => {
         attachThousandFormatter(inp);
-        inp.addEventListener('input', () => { state.riders[inp.dataset.riderStbh].stbh = inp.value; refreshHints(); });
+        inp.addEventListener('input', () => { state.riders[inp.dataset.riderStbh].stbh = inp.value; inp.classList.remove('input-error'); refreshHints(); });
       });
       document.querySelectorAll('[data-rider-tier]').forEach(sel => {
-        sel.addEventListener('change', () => { state.riders[sel.dataset.riderTier].tier = sel.value; refreshHints(); });
+        sel.addEventListener('change', () => { state.riders[sel.dataset.riderTier].tier = sel.value; sel.classList.remove('input-error'); refreshHints(); });
       });
 
       document.getElementById('btn-go-page2').addEventListener('click', () => {
@@ -1889,54 +1941,154 @@
         renderAll();
       });
 
-      // Xóa border đỏ khi focus vào input
-      ['f-dob', 'f-stbh', 'f-phicoban', 'f-payyears'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', () => el.classList.remove('input-error'));
-      });
+      // Lỗi "dưới mức tối thiểu" chỉ báo khi đã rời khỏi ô (tránh báo đỏ khi đang gõ dở)
+      const root = document.getElementById('page-root');
+      if (!root._touchBound) {
+        root._touchBound = true;
+        root.addEventListener('focusout', e => {
+          const k = fieldKeyOf(e.target);
+          if (k && state.page === 1) { touched[k] = true; refreshHints(); }
+        });
+      }
 
-      updateTotalFirstYear();
+      refreshHints();
+    }
+
+    // ============ KIỂM TRA GIỚI HẠN TỪNG Ô ============
+    const touched = {};
+    function fieldKeyOf(el) {
+      if (!el) return null;
+      if (el.dataset && el.dataset.riderStbh) return 'rider-' + el.dataset.riderStbh;
+      if (el.dataset && el.dataset.riderTier) return 'rider-' + el.dataset.riderTier;
+      return ['f-dob', 'f-phicoban', 'f-phidongthem', 'f-stbh', 'f-payyears'].includes(el.id) ? el.id : null;
+    }
+    const FIELD_DOM = {
+      'f-dob': ['#f-dob', '#age-hint'],
+      'f-phicoban': ['#f-phicoban', '#hint-phicoban'],
+      'f-phidongthem': ['#f-phidongthem', '#hint-phidongthem'],
+      'f-stbh': ['#f-stbh', '#hint-stbh-chinh'],
+      'f-payyears': ['#f-payyears', '#hint-payyears']
+    };
+    RIDER_DEFS.forEach(r => {
+      FIELD_DOM['rider-' + r.type] = [r.type === 'R26' ? '[data-rider-tier="R26"]' : `[data-rider-stbh="${r.type}"]`, '#hint-rider-' + r.type];
+    });
+
+    // kind: 'empty' (chỉ báo khi bấm nút) | 'min' (báo khi rời ô) | 'max' / 'other' (báo ngay khi nhập)
+    function evalFields() {
+      const age = state.customer.age;
+      const gender = state.customer.gender;
+      const nhom = state.customer.nhomNgheNghiep;
+      const phiCoBan = parseNum(state.product.phiCoBan);
+      const stbhChinh = parseNum(state.product.stbhChinh);
+      const phiDongThem = parseNum(state.product.phiDongThem);
+      const term = resolvedTerm();
+      const m = n => fmtMoney(n) + ' đ';
+      const F = {};
+
+      // Ngày sinh / tuổi
+      {
+        const T = LIMITS.tuoi;
+        const f = F['f-dob'] = { hint: age !== null ? `Tuổi được bảo hiểm: <b>${age}</b> · Giới hạn: ${T.min} – ${T.max} tuổi` : `Giới hạn tuổi tham gia: ${T.min} – ${T.max} tuổi` };
+        const dob = state.customer.dobStr || '';
+        if (dob.length === 10 && age === null) { f.err = 'Ngày sinh không hợp lệ.'; f.kind = 'other'; }
+        else if (age !== null && age < T.min) { f.err = 'Ngày sinh không được sau ngày tham gia.'; f.kind = 'other'; }
+        else if (age !== null && age > T.max) { f.err = `NĐBH ${age} tuổi, vượt tuổi tham gia tối đa ${T.max} tuổi.`; f.kind = 'max'; }
+        else if (age === null) { f.err = 'Vui lòng nhập ngày sinh (dd/mm/yyyy).'; f.kind = 'empty'; }
+      }
+      // Phí cơ bản
+      const phiOk = phiCoBan >= LIMITS.phiCoBan.min;
+      {
+        const f = F['f-phicoban'] = { hint: '' };
+        if (!phiCoBan) { f.err = 'Vui lòng nhập Phí bảo hiểm cơ bản.'; f.kind = 'empty'; }
+        else if (!phiOk) { f.err = `Thấp hơn mức tối thiểu ${m(LIMITS.phiCoBan.min)}.`; f.kind = 'min'; }
+      }
+      // Phí đóng thêm
+      {
+        const lim = phiDongThemMaxLimit(phiCoBan);
+        const f = F['f-phidongthem'] = { hint: lim ? `Giới hạn: <b>${m(lim.min)}</b> – <b>${m(lim.max)}</b>, hoặc 0` : `Giới hạn: từ ${m(LIMITS.phiDongThem.min)} đến ${LIMITS.phiDongThem.maxHeSoPhi} lần phí cơ bản, hoặc 0` };
+        if (phiDongThem > 0) {
+          if (phiDongThem < LIMITS.phiDongThem.min) { f.err = `Thấp hơn mức tối thiểu ${m(LIMITS.phiDongThem.min)} (để 0 nếu không đóng thêm).`; f.kind = 'min'; }
+          else if (lim && phiDongThem > lim.max) { f.err = `Vượt mức tối đa ${m(lim.max)} (${LIMITS.phiDongThem.maxHeSoPhi} lần phí cơ bản).`; f.kind = 'max'; }
+        }
+      }
+      // STBH chính
+      {
+        const lim = (phiOk && age !== null && age <= LIMITS.tuoi.max) ? stbhChinhLimits(phiCoBan, age, gender) : null;
+        const f = F['f-stbh'] = { hint: lim ? `Giới hạn: <b>${m(lim.min)}</b> – <b>${m(lim.max)}</b>` : 'Nhập Phí bảo hiểm cơ bản và Ngày sinh để xem giới hạn.' };
+        if (!stbhChinh) { f.err = 'Vui lòng nhập Số tiền bảo hiểm.'; f.kind = 'empty'; }
+        else if (lim && stbhChinh < lim.min) { f.err = `Thấp hơn mức tối thiểu ${m(lim.min)}${lim.minReason ? ' (' + lim.minReason + ')' : ''}.`; f.kind = 'min'; }
+        else if (lim && stbhChinh > lim.max) { f.err = `Vượt mức tối đa ${m(lim.max)}${lim.maxReason ? ' (' + lim.maxReason + ')' : ''}.`; f.kind = 'max'; }
+        else if (!lim && stbhChinh > LIMITS.stbhChinh.max) { f.err = `Vượt mức tối đa ${fmtTrieu(LIMITS.stbhChinh.max)}.`; f.kind = 'max'; }
+      }
+      // Thời hạn đóng phí
+      {
+        const py = state.product.paymentYears;
+        const f = F['f-payyears'] = { hint: term ? `Giới hạn: <b>${LIMITS.thoiHanDongPhi.min}</b> – <b>${term}</b> năm` : `Tối thiểu ${LIMITS.thoiHanDongPhi.min} năm, không quá thời hạn hợp đồng` };
+        if (!py) { f.err = 'Vui lòng nhập Thời hạn đóng phí.'; f.kind = 'empty'; }
+        else if (py < LIMITS.thoiHanDongPhi.min) { f.err = `Thấp hơn mức tối thiểu ${LIMITS.thoiHanDongPhi.min} năm.`; f.kind = 'min'; }
+        else if (term && py > term) { f.err = `Vượt thời hạn hợp đồng (${term} năm).`; f.kind = 'max'; }
+      }
+      // Sản phẩm bán kèm
+      RIDER_DEFS.forEach(r => {
+        const st = state.riders[r.type];
+        if (!st.enabled) return;
+        const key = 'rider-' + r.type;
+        if (r.type === 'R26') {
+          const tr = r26TierRange(phiCoBan);
+          const f = F[key] = { hint: tr ? `Hạng cho phép: <b>${tr.minTier}</b> – <b>${tr.maxTier}</b>` : 'Nhập Phí bảo hiểm cơ bản để xem hạng cho phép.' };
+          if (age !== null && age > RIDER_MAX_AGE.R26) { f.err = `NĐBH vượt tuổi tối đa ${RIDER_MAX_AGE.R26} tuổi.`; f.kind = 'other'; return; }
+          if (!phiCoBan) return;
+          const maxKey = r26MaxTierKey(phiCoBan);
+          if (!maxKey) { f.err = 'Phí cơ bản chưa đủ điều kiện tham gia.'; f.kind = 'other'; }
+          else if (R26_KEY_ORDER.indexOf(st.tier) > R26_KEY_ORDER.indexOf(maxKey)) {
+            f.err = `Phí cơ bản ${m(phiCoBan)} chỉ được chọn tối đa hạng ${tr.maxTier}.`; f.kind = 'max';
+          }
+          return;
+        }
+        const lim = riderStbhLimits(r.type, age, phiCoBan, stbhChinh);
+        const v = parseNum(st.stbh);
+        const f = F[key] = {};
+        if (lim && lim.notAllowed === 'nhom') { f.hint = ''; f.err = `Không nhận bảo hiểm Nhóm nghề ${nhom}.`; f.kind = 'other'; return; }
+        if (lim && lim.notAllowed === 'phi') { f.hint = ''; f.err = `Phí cơ bản tối thiểu ${m(LIMITS.R29.bacPhi[LIMITS.R29.bacPhi.length - 1][0])} mới tham gia được.`; f.kind = 'other'; return; }
+        f.hint = lim ? `Giới hạn: <b>${m(lim.min)}</b> – <b>${m(lim.max)}</b>`
+          : (r.type === 'R29' ? 'Nhập Phí bảo hiểm cơ bản và Ngày sinh để xem giới hạn.' : 'Nhập Số tiền bảo hiểm (Sản phẩm chính) để xem giới hạn.');
+        if (age !== null && RIDER_MAX_AGE[r.type] !== undefined && age > RIDER_MAX_AGE[r.type]) { f.err = `NĐBH vượt tuổi tối đa ${RIDER_MAX_AGE[r.type]} tuổi.`; f.kind = 'other'; return; }
+        if (!v) { f.err = 'Vui lòng nhập Số tiền bảo hiểm, hoặc bỏ chọn sản phẩm này.'; f.kind = 'empty'; return; }
+        if (!lim) return;
+        if (lim.min > lim.max) { f.err = `STBH sản phẩm chính phải từ ${m(lim.min)} trở lên mới tham gia được.`; f.kind = 'other'; }
+        else if (v < lim.min) { f.err = `Thấp hơn mức tối thiểu ${m(lim.min)}.`; f.kind = 'min'; }
+        else if (v > lim.max) { f.err = `Vượt mức tối đa ${m(lim.max)}${lim.maxReason ? ' (' + lim.maxReason + ')' : ''}.`; f.kind = 'max'; }
+      });
+      return F;
+    }
+
+    // Vẽ gợi ý giới hạn + báo đỏ vào từng ô. Trả về danh sách key đang lỗi (đã tính cả lỗi ẩn).
+    function applyFieldStates(forceAll) {
+      const F = evalFields();
+      const failing = [];
+      Object.keys(FIELD_DOM).forEach(key => {
+        const [inSel, hintSel] = FIELD_DOM[key];
+        const inEl = document.querySelector(inSel);
+        const hintEl = document.querySelector(hintSel);
+        const f = F[key];
+        if (!f) { if (inEl) inEl.classList.remove('input-error'); return; }
+        if (f.err) failing.push(key);
+        const show = f.err && (forceAll || f.kind === 'max' || f.kind === 'other' || (f.kind === 'min' && touched[key]));
+        if (inEl) inEl.classList.toggle('input-error', !!show);
+        if (hintEl) hintEl.innerHTML = (f.hint || '') + (show ? `<div class="hint-error">⚠️ ${f.err}</div>` : '');
+      });
+      return { F, failing };
     }
 
     function refreshHints() {
-      const age = state.customer.age;
       const phiCoBan = parseNum(state.product.phiCoBan);
-      const stbhChinh = parseNum(state.product.stbhChinh);
-      const gender = state.customer.gender;
-
-      const stbhHintEl = document.getElementById('hint-stbh-chinh');
-      if (stbhHintEl) stbhHintEl.innerHTML = stbhHintHtml(stbhChinhLimits(phiCoBan, age, gender));
-
       const savingEl = document.getElementById('hint-daily-saving');
       if (savingEl) savingEl.innerHTML = phiCoBan ? `Tiết kiệm: <b>${fmtMoney(Math.round(phiCoBan / 365))} đồng/ngày</b>` : '';
-
-      const pdtHintEl = document.getElementById('hint-phidongthem');
-      if (pdtHintEl) {
-        const limPDT = phiDongThemMaxLimit(phiCoBan);
-        pdtHintEl.innerHTML = limPDT ? `Tối đa: <b>${fmtMoney(limPDT.max)} đ</b>/năm (5 lần phí cơ bản).` : '';
-      }
-
       RIDER_DEFS.forEach(r => {
-        const st = state.riders[r.type];
-        if (r.type === 'R26') {
-          const el = document.getElementById('hint-rider-R26');
-          if (el) {
-            const tr = r26TierRange(phiCoBan);
-            el.innerHTML = tr ? `Hạng mức cho phép theo phí cơ bản: <b>${tr.minTier}</b> – <b>${tr.maxTier}</b>.` : 'Nhập Phí bảo hiểm cơ bản để xem hạng mức cho phép.';
-          }
-          const feeEl = document.getElementById('fee-rider-R26');
-          if (feeEl) feeEl.innerHTML = riderFeeHtml(r, st);
-          return;
-        }
-        const el = document.getElementById('hint-rider-' + r.type);
-        if (el) {
-          const lim = riderStbhLimits(r.type, age, phiCoBan, stbhChinh);
-          el.innerHTML = riderHintHtml(r.type, lim);
-        }
         const feeEl = document.getElementById('fee-rider-' + r.type);
-        if (feeEl) feeEl.innerHTML = riderFeeHtml(r, st);
+        if (feeEl) feeEl.innerHTML = riderFeeHtml(r, state.riders[r.type]);
       });
-
+      applyFieldStates(!!state.submitTried);
       updateTotalFirstYear();
     }
 
@@ -1959,41 +2111,15 @@
     }
 
     function validatePage1() {
-      const errs = [];
-      const term = resolvedTerm();
-      const fieldErrors = { dob: false, stbh: false, phicoban: false, payyears: false };
-
-      if (state.customer.age === null) { errs.push('Vui lòng chọn đầy đủ ngày sinh.'); fieldErrors.dob = true; }
-
-      if (!parseNum(state.product.stbhChinh)) { errs.push('Vui lòng nhập Số tiền bảo hiểm.'); fieldErrors.stbh = true; }
-      else if (parseNum(state.product.stbhChinh) < 100000000) { errs.push('Số tiền bảo hiểm tối thiểu 100 triệu đồng.'); fieldErrors.stbh = true; }
-      else if (parseNum(state.product.stbhChinh) > 25000000000) { errs.push('Số tiền bảo hiểm không vượt quá 25 tỉ đồng.'); fieldErrors.stbh = true; }
-
-      if (!parseNum(state.product.phiCoBan)) { errs.push('Vui lòng nhập Phí bảo hiểm cơ bản.'); fieldErrors.phicoban = true; }
-      else if (parseNum(state.product.phiCoBan) < 6000000) { errs.push('Phí bảo hiểm cơ bản tối thiểu 6 triệu đồng.'); fieldErrors.phicoban = true; }
-      else if (parseNum(state.product.phiCoBan) > 25000000000) { errs.push('Phí bảo hiểm cơ bản không vượt quá 25 tỉ đồng.'); fieldErrors.phicoban = true; }
-
-      if (state.product.paymentYears < 4) { errs.push('Thời hạn đóng phí dự kiến tối thiểu 4 năm.'); fieldErrors.payyears = true; }
-
-      if (term !== null && state.product.paymentYears > term) { errs.push('Thời hạn đóng phí không được dài hơn Thời hạn hợp đồng.'); fieldErrors.payyears = true; }
-
-      if (state.customer.age !== null && (state.customer.age < 0 || state.customer.age > 85)) { errs.push('Tuổi được bảo hiểm ngoài phạm vi hỗ trợ (0–85 tuổi).'); fieldErrors.dob = true; }
-
-      // Highlight / clear border đỏ cho từng input
-      const toggle = (id, hasError) => {
-        const el = document.getElementById(id);
-        if (el) el.classList.toggle('input-error', hasError);
-      };
-      toggle('f-dob', fieldErrors.dob);
-      toggle('f-stbh', fieldErrors.stbh);
-      toggle('f-phicoban', fieldErrors.phicoban);
-      toggle('f-payyears', fieldErrors.payyears);
-
+      state.submitTried = true;
+      const { F, failing } = applyFieldStates(true);
       const banner = document.getElementById('form-errors');
-      if (errs.length) {
-        banner.innerHTML = errs.map(e => '• ' + e).join('<br>');
+      if (failing.length) {
+        const LABEL = { 'f-dob': 'Ngày sinh', 'f-phicoban': 'Phí cơ bản', 'f-phidongthem': 'Phí đóng thêm', 'f-stbh': 'STBH sản phẩm chính', 'f-payyears': 'Thời hạn đóng phí' };
+        banner.innerHTML = failing.map(k => '• ' + (LABEL[k] || k.replace('rider-', '')) + ': ' + F[k].err).join('<br>');
         banner.style.display = 'block';
-        banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const first = document.querySelector(FIELD_DOM[failing[0]][0]);
+        (first || banner).scrollIntoView({ behavior: 'smooth', block: 'center' });
         return false;
       }
       banner.style.display = 'none';
